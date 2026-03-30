@@ -43,12 +43,12 @@ CREATE INDEX IF NOT EXISTS idx_coords ON access_points(latitude, longitude);
 """
 
 # XP rewards
-XP_PER_IMPORT = 10
-XP_PER_UPDATE = 3
-XP_PER_SESSION = 50
+XP_PER_IMPORT = 2
+XP_PER_UPDATE = 1
+XP_PER_SESSION = 10
 
-# Level thresholds: level N requires N*(N-1)*50 total XP
-# Lvl 1: 0, Lvl 2: 100, Lvl 3: 300, Lvl 4: 600, Lvl 5: 1000, ...
+# Level thresholds: level N requires N*(N-1)*150 total XP
+# Lvl 1: 0, Lvl 2: 300, Lvl 3: 900, Lvl 4: 1800, Lvl 5: 3000, Lvl 10: 13500, ...
 RANK_TITLES = {
     1: "Script Kiddie",
     2: "Packet Sniffer",
@@ -65,7 +65,7 @@ RANK_TITLES = {
 
 
 def xp_for_level(level: int) -> int:
-    return level * (level - 1) * 50
+    return level * (level - 1) * 150
 
 
 def level_from_xp(xp: int) -> int:
@@ -101,6 +101,14 @@ async def _migrate(db):
     """Add missing columns to existing tables so old DBs survive upgrades."""
     if not await _column_exists(db, "sessions", "xp_earned"):
         await db.execute("ALTER TABLE sessions ADD COLUMN xp_earned INTEGER DEFAULT 0")
+
+    # Recalculate XP with current rates from session data
+    cursor = await db.execute(
+        "SELECT COALESCE(SUM(ap_imported), 0) as imp, COALESCE(SUM(ap_updated), 0) as upd, COUNT(*) as sess FROM sessions"
+    )
+    row = await cursor.fetchone()
+    correct_xp = (row["imp"] * XP_PER_IMPORT) + (row["upd"] * XP_PER_UPDATE) + (row["sess"] * XP_PER_SESSION)
+    await db.execute("UPDATE profile SET xp = ? WHERE id = 1", (correct_xp,))
 
 
 async def init_db():

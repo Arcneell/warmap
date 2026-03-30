@@ -24,9 +24,11 @@ if ('geolocation' in navigator) {
 }
 
 const markers = L.markerClusterGroup({
-    maxClusterRadius: 50,
+    maxClusterRadius: 35,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
+    disableClusteringAtZoom: 18,
+    spiderfyDistanceMultiplier: 1.5,
 });
 map.addLayer(markers);
 
