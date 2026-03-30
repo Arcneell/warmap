@@ -11,3 +11,4 @@ services:
     restart: unless-stopped
     environment:
       - TZ=Indian/Reunion
+    network_mode: bridge
