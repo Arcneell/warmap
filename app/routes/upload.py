@@ -29,6 +29,7 @@ async def upload_csv(files: list[UploadFile] = File(...)):
             imported = 0
             updated = 0
             skipped = 0
+            wifi_imported = 0
 
             for ap in access_points:
                 existing = await db.execute(
@@ -51,6 +52,8 @@ async def upload_csv(files: list[UploadFile] = File(...)):
                         ),
                     )
                     imported += 1
+                    if ap["device_type"] == "WIFI":
+                        wifi_imported += 1
                 else:
                     updates = {}
                     old_rssi = row["rssi"]
@@ -83,7 +86,7 @@ async def upload_csv(files: list[UploadFile] = File(...)):
                     else:
                         skipped += 1
 
-            xp_earned = (imported * XP_PER_IMPORT) + (updated * XP_PER_UPDATE) + XP_PER_SESSION
+            xp_earned = (wifi_imported * XP_PER_IMPORT) + XP_PER_SESSION
             total_xp += xp_earned
 
             await db.execute(

@@ -105,12 +105,14 @@ async def _migrate(db):
     if not await _column_exists(db, "sessions", "xp_earned"):
         await db.execute("ALTER TABLE sessions ADD COLUMN xp_earned INTEGER DEFAULT 0")
 
-    # Recalculate XP with current rates from session data
+    # Recalculate XP: only WiFi APs count
     cursor = await db.execute(
-        "SELECT COALESCE(SUM(ap_imported), 0) as imp, COALESCE(SUM(ap_updated), 0) as upd, COUNT(*) as sess FROM sessions"
+        "SELECT COUNT(*) as wifi_count FROM access_points WHERE device_type = 'WIFI'"
     )
-    row = await cursor.fetchone()
-    correct_xp = (row["imp"] * XP_PER_IMPORT) + (row["upd"] * XP_PER_UPDATE) + (row["sess"] * XP_PER_SESSION)
+    wifi_count = (await cursor.fetchone())["wifi_count"]
+    cursor = await db.execute("SELECT COUNT(*) as sess FROM sessions")
+    sess_count = (await cursor.fetchone())["sess"]
+    correct_xp = (wifi_count * XP_PER_IMPORT) + (sess_count * XP_PER_SESSION)
     await db.execute("UPDATE profile SET xp = ? WHERE id = 1", (correct_xp,))
 
 
