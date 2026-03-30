@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wardrove</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div style="display:flex;align-items:center;gap:12px;">
+        <button class="hamburger" id="hamburgerBtn">&#9776;</button>
+        <div class="logo">wardrove<span>.db</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+        <div class="header-profile" id="headerProfile" style="display:none;">
+            <span class="header-level" id="headerLevel">Lvl 1</span>
+            <span class="header-pseudo" id="headerPseudo"></span>
+        </div>
+        <button class="btn" id="uploadBtn"><span class="btn-icon">&#8686;</span>Upload CSV</button>
+    </div>
+</header>
+
+<div class="main">
+    <aside class="sidebar" id="sidebar">
+        <!-- Profile / XP -->
+        <div class="card" id="profileCard" style="display:none;">
+            <div class="card-title">Profile</div>
+            <div class="profile-header">
+                <div class="profile-pseudo" id="profilePseudo"></div>
+                <div class="profile-rank" id="profileRank"></div>
+            </div>
+            <div class="xp-section">
+                <div class="xp-level-row">
+                    <span class="xp-level" id="xpLevel">Lvl 1</span>
+                    <span class="xp-text" id="xpText">0 / 100 XP</span>
+                </div>
+                <div class="xp-bar">
+                    <div class="xp-bar-fill" id="xpBarFill" style="width:0%"></div>
+                </div>
+                <div class="xp-total" id="xpTotal">0 XP total</div>
+            </div>
+        </div>
+
+        <!-- Total APs -->
+        <div class="card">
+            <div class="card-title">Access Points</div>
+            <div class="big-number" id="totalAps">0</div>
+            <div class="big-number-label">unique networks detected</div>
+        </div>
+
+        <!-- Encryption chart -->
+        <div class="card">
+            <div class="card-title">Encryption</div>
+            <div class="chart-container">
+                <canvas id="encChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Top SSID -->
+        <div class="card">
+            <div class="card-title">Top SSID</div>
+            <ul class="top-ssid-list" id="topSsidList">
+                <li><span class="ssid-name">--</span></li>
+            </ul>
+        </div>
+
+        <!-- Sessions -->
+        <div class="card">
+            <div class="card-title">Sessions</div>
+            <div class="session-info">
+                <div>Total: <span class="value" id="totalSessions">0</span></div>
+                <div>Last upload: <span class="value" id="lastSession">--</span></div>
+            </div>
+            <div class="session-history">
+                <div class="session-bar" id="sessionBar"></div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card">
+            <div class="card-title">Filters</div>
+            <div class="filter-group" id="encFilters">
+                <label><input type="checkbox" value="WPA3" checked><span class="enc-dot" style="background:var(--enc-wpa3)"></span>WPA3</label>
+                <label><input type="checkbox" value="WPA2" checked><span class="enc-dot" style="background:var(--enc-wpa2)"></span>WPA2</label>
+                <label><input type="checkbox" value="WPA" checked><span class="enc-dot" style="background:var(--enc-wpa)"></span>WPA</label>
+                <label><input type="checkbox" value="WEP" checked><span class="enc-dot" style="background:var(--enc-wep)"></span>WEP</label>
+                <label><input type="checkbox" value="Open" checked><span class="enc-dot" style="background:var(--enc-open)"></span>Open</label>
+                <label><input type="checkbox" value="Unknown" checked><span class="enc-dot" style="background:var(--enc-unknown)"></span>Unknown</label>
+            </div>
+            <input type="text" class="search-input" id="ssidSearch" placeholder="Search SSID..." style="margin-top:12px">
+        </div>
+    </aside>
+
+    <div id="map"></div>
+</div>
+
+<!-- Pseudo Modal (first time) -->
+<div class="modal-overlay" id="pseudoModal">
+    <div class="modal">
+        <h2>Welcome to Wardrove</h2>
+        <p style="color:var(--text-secondary);margin-bottom:20px;font-size:0.9rem;">Choose your handle to start tracking.</p>
+        <input type="text" class="search-input" id="pseudoInput" placeholder="Your pseudo..." maxlength="24" style="font-size:1rem;padding:12px 16px;">
+        <div class="modal-actions">
+            <button class="btn" id="pseudoSubmit">Start Wardriving</button>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="uploadModal">
+    <div class="modal">
+        <h2>Upload WiGLE CSV</h2>
+        <div class="drop-zone" id="dropZone">
+            <p>Drag & drop your .wigle.csv file here</p>
+            <button class="btn" id="browseBtn">Browse</button>
+            <input type="file" id="fileInput" accept=".csv" style="display:none">
+        </div>
+        <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+        <div class="upload-result" id="uploadResult">
+            <div class="stat"><span class="label">Imported</span><span id="resImported">0</span></div>
+            <div class="stat"><span class="label">Updated</span><span id="resUpdated">0</span></div>
+            <div class="stat"><span class="label">Skipped</span><span id="resSkipped">0</span></div>
+            <div class="stat xp-earned-row"><span class="label">XP earned</span><span id="resXp" class="xp-earned-value">+0</span></div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn-ghost" id="closeModal">Close</button>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>
