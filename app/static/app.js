@@ -110,16 +110,25 @@ window.popupNav = function(dir) {
     const f = popupFeatures[popupIndex];
     const [lng, lat] = f.geometry.coordinates;
     const newLatLng = L.latLng(lat, lng);
+    const oldLatLng = activePopup.getLatLng();
 
-    // Close old popup, pan, then open new one at the target position
-    map.closePopup();
-    map.once('moveend', () => {
-        activePopup = L.popup({ maxWidth: 280, maxHeight: 300, className: 'custom-popup' })
-            .setLatLng(newLatLng)
-            .setContent(buildPopupContent(popupFeatures, popupIndex))
-            .openOn(map);
-    });
-    map.panTo(newLatLng, { animate: true, duration: 0.25 });
+    // Check if the new AP is far enough to warrant a pan
+    const dist = oldLatLng.distanceTo(newLatLng);
+
+    if (dist > 5) {
+        // Different location — pan and reopen
+        map.closePopup();
+        map.once('moveend', () => {
+            activePopup = L.popup({ maxWidth: 280, maxHeight: 300, className: 'custom-popup' })
+                .setLatLng(newLatLng)
+                .setContent(buildPopupContent(popupFeatures, popupIndex))
+                .openOn(map);
+        });
+        map.panTo(newLatLng, { animate: true, duration: 0.25 });
+    } else {
+        // Same spot — just update content in place
+        activePopup.setContent(buildPopupContent(popupFeatures, popupIndex));
+    }
 };
 
 // ─── Profile ─────────────────────────────────────────────
