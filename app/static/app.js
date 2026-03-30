@@ -24,13 +24,33 @@ if ('geolocation' in navigator) {
 }
 
 const markers = L.markerClusterGroup({
-    maxClusterRadius: 35,
+    maxClusterRadius: 30,
     spiderfyOnMaxZoom: true,
     showCoverageOnHover: false,
-    disableClusteringAtZoom: 18,
-    spiderfyDistanceMultiplier: 1.5,
+    spiderfyDistanceMultiplier: 2,
+    zoomToBoundsOnClick: true,
 });
 map.addLayer(markers);
+
+// ─── Heatmap ─────────────────────────────────────────────
+let heatLayer = null;
+let viewMode = 'markers'; // 'markers' | 'heat'
+
+function setViewMode(mode) {
+    viewMode = mode;
+    document.getElementById('btnViewMarkers').classList.toggle('active', mode === 'markers');
+    document.getElementById('btnViewHeat').classList.toggle('active', mode === 'heat');
+    if (mode === 'markers') {
+        if (heatLayer) map.removeLayer(heatLayer);
+        map.addLayer(markers);
+    } else {
+        map.removeLayer(markers);
+        if (heatLayer) map.addLayer(heatLayer);
+    }
+}
+
+document.getElementById('btnViewMarkers').addEventListener('click', () => setViewMode('markers'));
+document.getElementById('btnViewHeat').addEventListener('click', () => setViewMode('heat'));
 
 let encChart = null;
 
@@ -216,6 +236,23 @@ async function loadGeoJSON() {
         });
 
         markers.addLayer(layer);
+
+        // Build heatmap from same data
+        const heatData = geojson.features.map(f => {
+            const [lng, lat] = f.geometry.coordinates;
+            const rssi = f.properties.rssi || -100;
+            const intensity = Math.max(0.05, Math.min(1, (rssi + 100) / 60));
+            return [lat, lng, intensity];
+        });
+        if (heatLayer) map.removeLayer(heatLayer);
+        heatLayer = L.heatLayer(heatData, {
+            radius: 18,
+            blur: 22,
+            maxZoom: 17,
+            gradient: { 0.2: '#3b82f6', 0.5: '#f0883e', 0.8: '#f85149', 1.0: '#ffffff' },
+        });
+        if (viewMode === 'heat') map.addLayer(heatLayer);
+
         map.fitBounds(markers.getBounds(), { padding: [30, 30] });
     } catch (e) {
         console.error('Failed to load GeoJSON:', e);

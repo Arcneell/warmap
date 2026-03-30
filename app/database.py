@@ -47,8 +47,9 @@ XP_PER_IMPORT = 1
 XP_PER_UPDATE = 0
 XP_PER_SESSION = 5
 
-# Level thresholds: level N requires N*(N-1)*100 total XP
-# Lvl 2: 200, Lvl 5: 2000, Lvl 10: 9000, Lvl 20: 38000, Lvl 50: 245000, Lvl 100: 990000
+# Level thresholds: level N requires N*(N-1)*10 total XP
+# Lvl 2: 20, Lvl 5: 200, Lvl 10: 900, Lvl 20: 3800, Lvl 50: 24500, Lvl 100: 99000
+# → Mapping all of La Réunion (~100k unique APs) ≈ level 100
 RANK_TITLES = {
     1: "Script Kiddie",
     3: "Packet Sniffer",
@@ -67,7 +68,7 @@ RANK_TITLES = {
 
 
 def xp_for_level(level: int) -> int:
-    return level * (level - 1) * 100
+    return level * (level - 1) * 10
 
 
 def level_from_xp(xp: int) -> int:
