@@ -81,14 +81,17 @@ function buildPopupContent(features, activeIndex) {
 
     features.forEach((f, i) => {
         const p = f.properties;
+        const [lng, lat] = f.geometry.coordinates;
         const encColor = ENC_COLORS[p.encryption] || ENC_COLORS.Unknown;
         const display = (multi && i !== activeIndex) ? 'none' : 'block';
+        const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`;
         html += `<div class="popup-ap" data-popup-idx="${i}" style="display:${display}">
             <div><span class="popup-label">SSID:</span> ${escapeHtml(p.ssid) || '<i>hidden</i>'}</div>
             <div><span class="popup-label">BSSID:</span> ${escapeHtml(p.bssid)}</div>
             <div><span class="popup-label">Encryption:</span> <span class="popup-enc" style="background:${encColor}20;color:${encColor}">${p.encryption}</span></div>
             <div><span class="popup-label">Channel:</span> ${p.channel}</div>
             <div><span class="popup-label">Signal:</span> ${p.rssi} dBm</div>
+            <div><span class="popup-label">GPS:</span> <a href="${gmapsUrl}" target="_blank" class="popup-gps">${lat.toFixed(5)}, ${lng.toFixed(5)}</a></div>
             <div><span class="popup-label">First seen:</span> ${p.first_seen}</div>
             <div><span class="popup-label">Last seen:</span> ${p.last_seen}</div>
         </div>`;
