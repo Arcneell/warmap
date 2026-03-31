@@ -16,27 +16,27 @@ export function Modal({ open, onClose, title, children, wide }: ModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 bg-ink/45 z-[10000] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-ink/45 z-[10000] flex items-center justify-center p-4 sm:p-6"
           onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
         >
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 16 }}
-            className={`ornate-card ${wide ? 'w-full max-w-2xl' : 'w-full max-w-md'} max-h-[85vh] overflow-hidden flex flex-col -rotate-[0.4deg]`}
+            exit={{ opacity: 0, y: 12 }}
+            className={`rulebook-frame bg-parchment ${wide ? 'w-full max-w-2xl' : 'w-full max-w-md'} max-h-[85vh] overflow-hidden flex flex-col`}
           >
-            <div className="flex items-center justify-between px-5 py-3 ornate-header gap-3">
-              <h2 className="font-display font-bold text-base text-wax-red tracking-wide">{title}</h2>
+            <div className="flex items-center justify-between px-5 sm:px-6 py-4 border-b-2 border-ink gap-3 bg-[#ebe4d0]">
+              <h2 className="font-display font-bold text-base sm:text-lg text-wax-red tracking-wide">{title}</h2>
               <button
                 type="button"
                 onClick={onClose}
-                className="min-w-[2.25rem] min-h-[2.25rem] flex items-center justify-center font-display text-2xl leading-none text-ink hover:text-wax-red transition-colors border-2 border-transparent hover:border-dashed hover:border-ink"
+                className="w-8 h-8 flex items-center justify-center font-display text-xl text-ink hover:text-wax-red transition-colors border border-transparent hover:border-ink"
                 aria-label="Close"
               >
-                ×
+                &times;
               </button>
             </div>
-            <div className="p-5 overflow-y-auto flex-1 text-ink">
+            <div className="px-5 sm:px-6 py-5 sm:py-6 overflow-y-auto flex-1 text-ink text-sm">
               {children}
             </div>
           </motion.div>

@@ -19,10 +19,10 @@ const TermsPage = lazy(() => import('@/pages/TermsPage').then(m => ({ default: m
 
 function PageLoader() {
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[12rem] p-12">
+    <div className="flex-1 w-full flex items-center justify-center min-h-[12rem] p-12">
       <div className="text-center">
         <Loader2 size={36} strokeWidth={1.5} className="text-wax-red animate-spin mx-auto mb-4" />
-        <p className="font-display text-sm text-sepia tracking-wide">Unfurling the scroll…</p>
+        <p className="font-display text-base text-gray-800 tracking-wide leading-relaxed">Unfurling the scroll…</p>
       </div>
     </div>
   )
@@ -31,15 +31,17 @@ function PageLoader() {
 function AppRoutes() {
   return (
     <Suspense fallback={<PageLoader />}>
-      <Routes>
-        <Route path="/" element={<MapPage />} />
-        <Route path="/armory" element={<ArmoryPage />} />
-        <Route path="/leaderboard" element={<LeaderboardPage />} />
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/profile/:userId" element={<ProfilePage />} />
-        <Route path="/quarters" element={<MyQuarters />} />
-        <Route path="/terms" element={<TermsPage />} />
-      </Routes>
+      <div className="flex min-h-0 w-full flex-1 flex-col">
+        <Routes>
+          <Route path="/" element={<MapPage />} />
+          <Route path="/armory" element={<ArmoryPage />} />
+          <Route path="/leaderboard" element={<LeaderboardPage />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/profile/:userId" element={<ProfilePage />} />
+          <Route path="/quarters" element={<MyQuarters />} />
+          <Route path="/terms" element={<TermsPage />} />
+        </Routes>
+      </div>
     </Suspense>
   )
 }
@@ -90,9 +92,9 @@ export default function App() {
       <AuthInitializer />
       {/* Table en bois : marge généreuse, grimoire centré */}
       <div className="h-full min-h-0 flex flex-col p-4 sm:p-6 md:p-8 lg:p-10 box-border">
-        <div className="grimoire-sheet flex flex-col flex-1 min-h-0 rounded-[2px] border-[3px] border-double border-ink max-w-[1600px] w-full mx-auto overflow-hidden">
+        <div className="grimoire-sheet flex w-full min-w-0 max-w-full flex-1 flex-col overflow-hidden rounded-[2px] border-[3px] border-double border-ink mx-auto">
           <HUD />
-          <main className="flex-1 min-h-0 flex flex-col overflow-hidden">
+          <main className="flex-1 min-h-0 w-full flex flex-col overflow-hidden">
             <AppRoutes />
           </main>
         </div>

@@ -39,8 +39,8 @@ export function ProfilePage() {
 
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-3xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 space-y-12 sm:space-y-16">
-        <section className="rulebook-frame p-10 sm:p-12 lg:p-16 bg-parchment text-center space-y-10">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <section className="rulebook-frame p-5 sm:p-6 bg-parchment text-center space-y-10">
           <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-xl mx-auto">
             Operator&apos;s folio
           </h1>
@@ -64,7 +64,7 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section className="rulebook-frame p-10 sm:p-12 bg-parchment space-y-8">
+        <section className="rulebook-frame p-5 sm:p-6 bg-parchment space-y-8">
           <h2 className="font-display text-xl sm:text-2xl font-bold text-ink text-center leading-loose border-b border-black/30 pb-6">
             Deeds ledger
           </h2>
@@ -84,7 +84,7 @@ export function ProfilePage() {
         </section>
 
         {earnedBadges.length > 0 && (
-          <section className="rulebook-frame p-10 sm:p-12 lg:p-14 bg-parchment space-y-10">
+          <section className="rulebook-frame p-5 sm:p-6 bg-parchment space-y-10">
             <header className="text-center space-y-4 border-b border-black/30 pb-8">
               <h2 className="font-display text-2xl font-bold text-wax-red leading-loose">Hall of seals</h2>
               <p className="font-mono text-sm text-sepia leading-loose">

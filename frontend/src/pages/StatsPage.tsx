@@ -46,45 +46,34 @@ export function StatsPage() {
     : []
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-6xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20 space-y-14 sm:space-y-16">
-        <header className="text-center max-w-2xl mx-auto space-y-6">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8">
-            World chronicles
-          </h1>
-          <p className="text-sm sm:text-base text-sepia font-sans leading-loose">
-            Tallies from every wardriver — sigils, channels, and names scratched in the ledger.
-          </p>
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-5xl mx-auto px-4 py-6 sm:px-6 sm:py-8 space-y-6">
+        <header className="text-center space-y-2">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-wax-red tracking-wide">World Chronicles</h1>
+          <p className="text-sm text-sepia">Tallies from every wardriver — sigils, channels, and names in the ledger.</p>
         </header>
 
         {stats && (
-          <section className="rulebook-frame bg-parchment p-10 sm:p-12 lg:p-14">
-            <h2 className="font-display text-center text-xl sm:text-2xl font-bold text-ink leading-loose border-b border-black/30 pb-8 mb-2">
-              Grand totals
+          <section className="rulebook-frame bg-parchment p-5 sm:p-6">
+            <h2 className="font-display text-center text-base font-bold text-ink border-b border-black/20 pb-3 mb-3">
+              Grand Totals
             </h2>
-            <ul className="list-none flex flex-col">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
               {tallyRows.map((row) => (
-                <li
-                  key={row.label}
-                  className="ledger-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-8 px-2 first:pt-6"
-                >
-                  <div className="flex items-center gap-5 min-w-0">
-                    <span className={`shrink-0 ${row.color} [&_svg]:text-ink`}>{row.icon}</span>
-                    <span className="font-display text-sm sm:text-base text-sepia leading-loose">{row.label}</span>
-                  </div>
-                  <span className={`font-mono font-bold text-xl sm:text-2xl tabular-nums shrink-0 ${row.color}`}>
-                    {formatNumber(row.value)}
-                  </span>
-                </li>
+                <div key={row.label} className="text-center space-y-1">
+                  <span className="text-sepia flex justify-center">{row.icon}</span>
+                  <p className={`font-mono text-lg font-bold tabular-nums ${row.color}`}>{formatNumber(row.value)}</p>
+                  <p className="text-xs text-sepia">{row.label}</p>
+                </div>
               ))}
-            </ul>
+            </div>
           </section>
         )}
 
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-10 lg:gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 sm:gap-6">
           {encData.length > 0 && (
             <GrimoirePanel title="Encryption distribution" icon={<Shield size={18} strokeWidth={1.75} />}>
-              <div className="h-64 sm:h-72 mb-10">
+              <div className="h-52 sm:h-60 mb-4 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={encData} cx="50%" cy="50%" innerRadius={52} outerRadius={86} paddingAngle={2} dataKey="value" stroke="#1a1a1a" strokeWidth={1}>
@@ -94,12 +83,12 @@ export function StatsPage() {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <ul className="flex flex-wrap gap-x-6 gap-y-4 justify-center list-none">
+              <ul className="flex flex-wrap gap-x-6 gap-y-4 justify-center list-none w-full">
                 {encData.map((d) => (
-                  <li key={d.name} className="flex items-center gap-2 text-sm font-mono leading-loose">
+                  <li key={d.name} className="flex items-center gap-2 text-base font-mono leading-relaxed">
                     <span className="w-3 h-3 border border-ink shrink-0" style={{ background: d.color }} />
-                    <span className="text-sepia">{d.name}</span>
-                    <span className="text-ink font-semibold tabular-nums">{formatNumber(d.value)}</span>
+                    <span className="text-gray-800">{d.name}</span>
+                    <span className="text-gray-900 font-semibold tabular-nums">{formatNumber(d.value)}</span>
                   </li>
                 ))}
               </ul>
@@ -108,7 +97,7 @@ export function StatsPage() {
 
           {channels && channels.length > 0 && (
             <GrimoirePanel title="Channel spread" icon={<BarChart3 size={18} strokeWidth={1.75} />}>
-              <div className="h-64 sm:h-72">
+              <div className="h-64 sm:h-72 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={channels.slice(0, 20)}>
                     <XAxis dataKey="channel" tick={{ fill: '#4a3b32', fontSize: 9, fontFamily: 'Courier Prime, monospace' }} />
@@ -123,18 +112,18 @@ export function StatsPage() {
 
           {manufacturers && manufacturers.length > 0 && (
             <GrimoirePanel title="Top manufacturers" icon={<Cpu size={18} strokeWidth={1.75} />}>
-              <ul className="list-none max-h-80 overflow-y-auto flex flex-col">
+              <ul className="flex w-full list-none flex-col overflow-y-auto max-h-80">
                 {manufacturers.slice(0, 15).map((m, i) => (
                   <li
                     key={i}
-                    className="ledger-line flex items-center gap-4 py-5 px-2 first:pt-2"
+                    className="ledger-line flex w-full flex-col items-center gap-3 py-5 px-2 text-center first:pt-2 sm:flex-row sm:flex-wrap sm:justify-center sm:gap-4"
                   >
-                    <span className="font-mono text-xs text-sepia w-8 text-right tabular-nums shrink-0">{i + 1}</span>
-                    <div className="flex-1 min-w-0 h-3 border-2 border-ink bg-parchment overflow-hidden">
+                    <span className="w-8 shrink-0 text-right font-mono text-sm tabular-nums text-gray-700">{i + 1}</span>
+                    <div className="h-3 w-full max-w-[14rem] border-2 border-ink bg-parchment overflow-hidden sm:max-w-[18rem]">
                       <div className="h-full bg-ink/85" style={{ width: `${(m.count / manufacturers[0].count) * 100}%` }} />
                     </div>
-                    <span className="text-sm text-ink truncate max-w-[10rem] sm:max-w-[14rem] font-display leading-loose shrink">{m.manufacturer}</span>
-                    <span className="font-mono text-sm text-sepia tabular-nums shrink-0">{formatNumber(m.count)}</span>
+                    <span className="max-w-[14rem] shrink truncate font-display text-sm leading-relaxed text-gray-900 sm:max-w-[18rem]">{m.manufacturer}</span>
+                    <span className="shrink-0 font-mono text-sm tabular-nums text-gray-800">{formatNumber(m.count)}</span>
                   </li>
                 ))}
               </ul>
@@ -143,14 +132,14 @@ export function StatsPage() {
 
           {topSSIDs && topSSIDs.length > 0 && (
             <GrimoirePanel title="Most spoken SSIDs" icon={<Wifi size={18} strokeWidth={1.75} />}>
-              <ol className="list-decimal list-inside max-h-80 overflow-y-auto marker:font-display marker:text-gold-tarnish flex flex-col">
+              <ol className="marker:text-gold-tarnish flex max-h-80 list-inside list-decimal flex-col overflow-y-auto marker:font-display">
                 {topSSIDs.map((s, i) => (
                   <li
                     key={i}
-                    className="ledger-line flex justify-between items-baseline gap-8 py-5 px-2 -ml-2 pl-2"
+                    className="ledger-line flex w-full flex-col items-center gap-1 py-5 px-2 pl-2 text-center -ml-2 sm:flex-row sm:justify-center sm:gap-8"
                   >
-                    <span className="font-mono text-sm text-ink truncate min-w-0 leading-loose">{s.ssid || '<hidden>'}</span>
-                    <span className="font-mono text-sm text-sepia tabular-nums shrink-0">{formatNumber(s.count)}</span>
+                    <span className="min-w-0 max-w-full font-mono text-base leading-relaxed text-gray-900 break-words">{s.ssid || '<hidden>'}</span>
+                    <span className="shrink-0 font-mono text-base tabular-nums text-gray-800">{formatNumber(s.count)}</span>
                   </li>
                 ))}
               </ol>
@@ -159,18 +148,18 @@ export function StatsPage() {
 
           {countries && countries.length > 0 && (
             <GrimoirePanel title="Realms by MCC" icon={<Globe size={18} strokeWidth={1.75} />} className="xl:col-span-2">
-              <ul className="list-none max-h-80 overflow-y-auto grid sm:grid-cols-2 gap-x-10">
+              <ul className="grid max-h-80 w-full list-none grid-cols-1 gap-x-10 overflow-y-auto sm:grid-cols-2">
                 {countries.slice(0, 15).map((c, i) => (
                   <li
                     key={i}
-                    className="ledger-line flex justify-between items-baseline gap-6 py-5 px-2"
+                    className="ledger-line flex flex-col items-center gap-1 py-5 px-2 text-center sm:gap-2"
                   >
-                    <div className="flex items-baseline gap-3 min-w-0">
-                      <span className="font-mono text-xs text-sepia w-7 text-right shrink-0 tabular-nums">{i + 1}</span>
-                      <span className="font-display text-sm text-ink truncate leading-loose">{c.country}</span>
-                      <span className="font-mono text-[10px] text-muted shrink-0">({c.mcc})</span>
+                    <div className="flex flex-wrap items-baseline justify-center gap-2">
+                      <span className="w-7 shrink-0 text-right font-mono text-xs tabular-nums text-gray-700">{i + 1}</span>
+                      <span className="max-w-[12rem] truncate font-display text-sm leading-relaxed text-gray-900 sm:max-w-none">{c.country}</span>
+                      <span className="shrink-0 font-mono text-[10px] text-gray-600">({c.mcc})</span>
                     </div>
-                    <span className="font-mono text-sm text-sepia tabular-nums shrink-0">{formatNumber(c.count)}</span>
+                    <span className="font-mono text-sm tabular-nums text-gray-800">{formatNumber(c.count)}</span>
                   </li>
                 ))}
               </ul>
@@ -194,14 +183,14 @@ function GrimoirePanel({
   className?: string
 }) {
   return (
-    <section className={`rulebook-frame bg-parchment p-10 sm:p-12 ${className}`}>
-      <header className="text-center space-y-4 border-b border-black/30 pb-8 mb-10">
+    <section className={`rulebook-frame bg-parchment p-8 sm:p-10 w-full ${className}`}>
+      <header className="text-center space-y-4 border-b border-black/30 pb-8 mb-10 w-full">
         <div className="flex justify-center text-wax-red" aria-hidden>{icon}</div>
         <h2 className="font-display text-lg sm:text-xl font-bold text-wax-red tracking-wide leading-loose px-4">
           {title}
         </h2>
       </header>
-      <div className="text-[13px] text-ink leading-loose">{children}</div>
+      <div className="w-full text-center text-base leading-relaxed text-gray-900">{children}</div>
     </section>
   )
 }

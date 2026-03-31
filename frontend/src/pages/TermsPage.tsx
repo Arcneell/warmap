@@ -1,32 +1,35 @@
 import { Link } from 'react-router-dom'
-import { Shield, ArrowLeft } from 'lucide-react'
+import { ArrowLeft } from 'lucide-react'
+import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export function TermsPage() {
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-3xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-sm font-mono text-sepia hover:text-wax-red mb-10 sm:mb-12 transition-colors leading-loose border-b border-dashed border-transparent hover:border-ink pb-1"
+          className="inline-flex items-center gap-3 text-base font-mono text-gray-800 hover:text-wax-red mb-10 sm:mb-12 transition-colors leading-relaxed border-b border-dashed border-transparent hover:border-ink pb-2"
         >
-          <ArrowLeft size={16} strokeWidth={1.75} className="text-ink shrink-0" /> Back to the chart
+          <ArrowLeft size={18} strokeWidth={1.75} className="text-gray-900 shrink-0" /> Back to the chart
         </Link>
 
-        <article className="rulebook-frame bg-parchment p-10 sm:p-12 lg:p-16 space-y-12">
-          <header className="text-center space-y-6 pb-4">
-            <div className="flex justify-center text-wax-red">
-              <Shield size={28} strokeWidth={1.75} />
+        <article className="rulebook-frame bg-parchment p-5 sm:p-8 space-y-8">
+          <header className="text-center space-y-8 pb-6">
+            <div className="flex justify-center">
+              <div className="border-[3px] border-double border-ink bg-[#fdf8ed] p-3" style={{ boxShadow: '4px 4px 0 0 #1a1a1a' }}>
+                <BrandLogo noBlend className="w-14 h-14 sm:w-16 sm:h-16" />
+              </div>
             </div>
-            <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-lg mx-auto">
-              Terms of service
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-lg mx-auto text-gray-900">
+              Wardrove — Terms of service
             </h1>
           </header>
 
-          <p className="text-ink font-display font-semibold text-base sm:text-lg border-l-4 border-wax-red pl-6 py-2 leading-loose max-w-2xl mx-auto text-center sm:text-left">
+          <p className="text-gray-900 font-display font-semibold text-lg sm:text-xl border-l-4 border-wax-red pl-6 py-3 leading-relaxed max-w-2xl mx-auto text-center sm:text-left">
             Last updated: March 2026. By using Wardrove, you agree to these terms.
           </p>
 
-          <div className="space-y-10 sm:space-y-12 text-sm sm:text-base text-sepia leading-loose max-w-none">
+          <div className="space-y-10 sm:space-y-12 text-base sm:text-lg text-gray-800 leading-relaxed max-w-none">
             <Section title="1. Acceptance of terms">
               <p>
                 By creating an account, uploading data, or otherwise using the Wardrove platform (&quot;Service&quot;),
@@ -98,11 +101,11 @@ export function TermsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="border-b border-black/15 pb-10 last:border-0 last:pb-0">
-      <h2 className="font-display text-lg font-bold text-gold-tarnish mb-4 text-center sm:text-left leading-loose">
+    <section className="border-b border-black/15 pb-10 mb-2 last:border-0 last:pb-0 last:mb-0">
+      <h2 className="font-display text-xl font-bold text-gold-tarnish mb-6 text-center sm:text-left leading-relaxed text-gray-900">
         {title}
       </h2>
-      <div className="space-y-3">{children}</div>
+      <div className="space-y-4 leading-relaxed">{children}</div>
     </section>
   )
 }

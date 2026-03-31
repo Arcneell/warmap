@@ -67,38 +67,25 @@ export function MyQuarters() {
 
   return (
     <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-4xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 space-y-12 sm:space-y-14">
-        <header className="text-center max-w-xl mx-auto space-y-6">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8">
-            My quarters
-          </h1>
-          <p className="text-sm sm:text-base text-sepia font-sans leading-loose">
-            Your chapter house — rank, spoils, quests, and API seals.
-          </p>
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+        <header className="text-center space-y-2">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-wax-red tracking-wide">My Quarters</h1>
+          <p className="text-sm text-sepia">Your chapter house — rank, spoils, quests, and API seals.</p>
         </header>
 
-        <nav className="flex flex-wrap gap-4 sm:gap-6 justify-center" aria-label="Quarters sections">
+        <nav className="flex flex-wrap gap-2 justify-center" aria-label="Quarters sections">
           {tabs.map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`flex items-center gap-3 px-6 py-4 border-2 text-sm font-display font-semibold transition-colors leading-loose ${
-                tab === t.key
-                  ? 'border-ink bg-[#ebe4d0] text-wax-red'
-                  : 'text-sepia border-dashed border-transparent hover:border-ink bg-parchment/50'
-              }`}
-              style={tab === t.key ? { boxShadow: '3px 3px 0 0 #1a1a1a' } : undefined}
+            <button key={t.key} type="button" onClick={() => setTab(t.key)}
+              className={`btn-parchment text-xs ${tab === t.key ? 'active' : ''}`}
             >
-              {t.icon}
-              {t.label}
+              {t.icon} {t.label}
             </button>
           ))}
         </nav>
 
         {tab === 'overview' && (
-          <div className="space-y-10 sm:space-y-12">
-            <section className="rulebook-frame bg-parchment p-10 sm:p-12 lg:p-14">
+          <div className="space-y-6">
+            <section className="rulebook-frame bg-parchment p-5 sm:p-6">
               <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
                 <div className="shrink-0">
                   <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={150} avatarUrl={user.avatar_url} />
@@ -121,7 +108,7 @@ export function MyQuarters() {
               </div>
             </section>
 
-            <section className="rulebook-frame bg-parchment p-10 sm:p-12">
+            <section className="rulebook-frame bg-parchment p-5 sm:p-6">
               <h2 className="font-display text-center text-xl font-bold text-ink leading-loose border-b border-black/30 pb-8 mb-2">
                 Field counts
               </h2>
@@ -144,7 +131,7 @@ export function MyQuarters() {
             </section>
 
             {earnedCount > 0 && (
-              <section className="rulebook-frame bg-parchment p-10 sm:p-12 space-y-8">
+              <section className="rulebook-frame bg-parchment p-5 sm:p-6 space-y-8">
                 <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-black/30 pb-8">
                   <h2 className="font-display text-xl font-bold text-wax-red text-center sm:text-left leading-loose">
                     Recent seals
@@ -169,7 +156,7 @@ export function MyQuarters() {
 
         {tab === 'badges' && (
           <div className="space-y-12 sm:space-y-14">
-            <section className="rulebook-frame bg-parchment p-10 sm:p-12 text-center space-y-8">
+            <section className="rulebook-frame bg-parchment p-5 sm:p-6 text-center space-y-8">
               <h2 className="font-display text-4xl sm:text-5xl font-bold text-gold-tarnish tabular-nums leading-loose border-b border-black/25 pb-8 inline-block min-w-[12rem]">
                 {earnedCount} / {totalCount}
               </h2>
@@ -292,7 +279,7 @@ function SettingsTab() {
   }
 
   return (
-    <section className="rulebook-frame bg-parchment p-10 sm:p-12 lg:p-14 space-y-10">
+    <section className="rulebook-frame bg-parchment p-5 sm:p-6 space-y-10">
       <header className="text-center space-y-4 border-b border-black/30 pb-8">
         <div className="flex justify-center text-wax-red">
           <Key size={22} strokeWidth={1.75} />
@@ -300,23 +287,23 @@ function SettingsTab() {
         <h2 className="font-display text-xl sm:text-2xl font-bold text-wax-red tracking-wide leading-loose px-4">
           API tokens
         </h2>
-        <p className="text-sm text-sepia font-sans leading-loose max-w-lg mx-auto">
+        <p className="text-base text-gray-800 font-sans leading-relaxed max-w-lg mx-auto">
           Keys cut for scripts and rigs. Copy once; the vault forgets the plain text.
         </p>
       </header>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-5">
         <input
           value={newTokenName}
           onChange={(e) => setNewTokenName(e.target.value)}
           placeholder="Name for this key…"
-          className="flex-1 min-w-0 px-5 py-4 border-2 border-ink bg-[#fdf8ed] text-sm font-mono text-ink placeholder:text-muted focus:outline-none focus:border-wax-red leading-loose"
+          className="flex-1 min-w-0 px-5 py-4 border-2 border-ink bg-[#fdf8ed] text-base font-mono text-gray-900 placeholder:text-gray-500 focus:outline-none focus:border-wax-red leading-relaxed"
         />
         <button
           type="button"
           onClick={createToken}
           disabled={!newTokenName.trim() || loading}
-          className="flex items-center justify-center gap-2 px-8 py-4 border-2 border-ink bg-[#ebe4d0] text-sm font-display font-bold text-ink hover:text-wax-red disabled:opacity-25 transition-colors shrink-0 leading-loose"
+          className="flex items-center justify-center gap-2 px-8 py-3 min-h-[3.25rem] border-2 border-ink bg-[#ebe4d0] text-base font-display font-bold text-gray-900 hover:text-wax-red disabled:opacity-25 transition-colors shrink-0 leading-relaxed"
           style={{ boxShadow: '3px 3px 0 0 #1a1a1a' }}
         >
           <Plus size={18} strokeWidth={1.75} /> Mint key

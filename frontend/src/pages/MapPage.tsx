@@ -4,7 +4,8 @@ import 'leaflet.markercluster'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { useMapStore } from '@/stores/mapStore'
 import { authFetch } from '@/api/client'
-import { Flame, MapPin, Search, Crosshair } from 'lucide-react'
+import { Flame, MapPin, Crosshair } from 'lucide-react'
+import { SearchField } from '@/components/ui/SearchField'
 
 const ENC_COLORS: Record<string, string> = {
   WPA3: '#1a4d2e', WPA2: '#1e4a6b', WPA: '#8b4513', WEP: '#9b2c2c', Open: '#5c5348', Unknown: '#5c5348',
@@ -224,88 +225,54 @@ export function MapPage() {
   }
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col lg:flex-row bg-transparent">
+    <div className="flex flex-1 min-h-0 overflow-hidden">
       <Sidebar />
 
-      <div className="flex-1 min-h-0 flex flex-col p-6 sm:p-10 lg:p-12 gap-8 overflow-hidden">
-        <header className="shrink-0 text-center space-y-4 px-4">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink tracking-wide leading-loose border-b border-black/30 pb-6 max-w-xl mx-auto">
-            Cartographer&apos;s chart
-          </h1>
-          <p className="text-sm sm:text-base text-sepia font-sans leading-loose max-w-2xl mx-auto">
-            Marks inked across the world-scroll — pan, filter, and seek an SSID sign.
-          </p>
-        </header>
+      <div className="flex-1 relative min-h-0">
+        <div ref={containerRef} className="absolute inset-0" />
 
-        <div className="flex-1 min-h-[320px] relative">
-          {/* Cadre double trait */}
-          <div
-            className="absolute inset-0 border-4 border-double border-ink pointer-events-none z-[400] rounded-[1px]"
-            style={{ boxShadow: 'inset 0 0 0 1px rgba(26,26,26,0.15)' }}
-            aria-hidden
+        {/* Top-right controls */}
+        <div className="absolute top-3 right-3 z-[1000] flex items-center gap-1.5">
+          <div className="parchment-scrap flex items-center gap-0.5 p-1">
+            <CtrlBtn active={viewMode === 'markers'} onClick={() => setViewMode('markers')} icon={<MapPin size={15} strokeWidth={1.75} />} label="Marks" />
+            <CtrlBtn active={viewMode === 'heatmap'} onClick={() => setViewMode('heatmap')} icon={<Flame size={15} strokeWidth={1.75} />} label="Heat" />
+          </div>
+          <button
+            type="button"
+            onClick={geolocate}
+            className="btn-parchment p-2"
+            title="Center on my position"
+            aria-label="Center map on my location"
+          >
+            <Crosshair size={16} strokeWidth={1.75} />
+          </button>
+        </div>
+
+        {/* Search bottom-right */}
+        <div className="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 z-[1000] sm:w-80">
+          <SearchField
+            value={searchVal}
+            onChange={setSearchVal}
+            placeholder="Search SSID or BSSID..."
+            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
-          <div ref={containerRef} className="absolute inset-3 sm:inset-5 z-0 rounded-[1px]" />
-
-          <div className="absolute top-4 right-4 sm:top-8 sm:right-10 z-[1000] flex flex-col items-end gap-6 max-w-[min(100%,18rem)]">
-            <div
-              className="parchment-scrap px-5 py-4 rotate-[0.8deg] origin-top-right"
-              role="group"
-              aria-label="Map view mode"
-            >
-              <p className="font-display text-[10px] uppercase tracking-[0.2em] text-wax-red mb-3 text-center border-b border-black/25 pb-2">
-                Sight
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <ScrapBtn active={viewMode === 'markers'} onClick={() => setViewMode('markers')} icon={<MapPin size={16} strokeWidth={1.75} className="text-ink" />} label="Marks" />
-                <ScrapBtn active={viewMode === 'heatmap'} onClick={() => setViewMode('heatmap')} icon={<Flame size={16} strokeWidth={1.75} className="text-wax-red" />} label="Heat" />
-              </div>
-            </div>
-            <div className="parchment-scrap p-3 -rotate-1" title="Recenter on me">
-              <button
-                type="button"
-                onClick={geolocate}
-                className="p-2 text-sepia hover:text-wax-red transition-colors leading-relaxed"
-                aria-label="Center map on my location"
-              >
-                <Crosshair size={20} strokeWidth={1.75} className="text-ink" />
-              </button>
-            </div>
-          </div>
-
-          <div className="absolute bottom-6 left-6 right-6 sm:left-auto sm:right-10 sm:max-w-md z-[1000]">
-            <div className="parchment-scrap px-0 py-0 rotate-[0.4deg]">
-              <div className="relative border-b-2 border-ink/20">
-                <Search size={18} strokeWidth={1.75} className="absolute left-5 top-1/2 -translate-y-1/2 text-sepia pointer-events-none" />
-                <input
-                  value={searchVal}
-                  onChange={(e) => setSearchVal(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                  placeholder="SSID or fragment…"
-                  className="w-full pl-14 pr-5 py-5 bg-transparent text-sm font-mono text-ink placeholder:text-muted focus:outline-none leading-loose"
-                />
-              </div>
-            </div>
-          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function ScrapBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function CtrlBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center justify-center gap-2 px-4 py-3 text-xs font-display font-semibold border-2 transition-colors leading-loose whitespace-nowrap ${
-        active
-          ? 'border-ink bg-[#ebe4d0] text-wax-red'
-          : 'border-transparent text-sepia hover:text-ink border-dashed hover:border-ink'
+      className={`flex items-center gap-1.5 px-3 py-2 text-xs font-display font-bold transition-colors ${
+        active ? 'bg-[#ebe4d0] text-wax-red' : 'text-sepia hover:text-ink'
       }`}
-      style={active ? { boxShadow: '2px 2px 0 0 #1a1a1a' } : undefined}
     >
       {icon}
-      <span>{label}</span>
+      <span className="hidden sm:inline">{label}</span>
     </button>
   )
 }

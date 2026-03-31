@@ -23,7 +23,7 @@
 
   --color-primary: #1a1a1a;
   --color-secondary: #4a3b32;
-  --color-muted: #6b5c4e;
+  --color-muted: #52463d;
 
   --color-xp: #1a1a1a;
   --color-wifi: #1e4a6b;
@@ -60,7 +60,8 @@ body {
     linear-gradient(165deg, #3d2e26 0%, #2a1f18 35%, #1f1813 70%, #2c221c 100%);
   color: var(--color-primary);
   font-family: var(--font-sans);
-  font-size: 14px;
+  font-size: 16px;
+  line-height: 1.65;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -103,7 +104,7 @@ body {
 .parchment-scrap {
   background: var(--color-parchment);
   border: 2px solid var(--color-ink);
-  box-shadow: 4px 4px 0 0 rgba(26, 26, 26, 0.92);
+  box-shadow: 3px 3px 0 0 rgba(26, 26, 26, 0.85);
 }
 
 /* Encadré type livre de règles */
@@ -113,6 +114,50 @@ body {
   outline-offset: 4px;
   background: var(--color-parchment);
 }
+
+/* Alias for legacy class names */
+.ornate-card {
+  background: var(--color-parchment);
+  border: 2px solid var(--color-ink);
+  box-shadow: 3px 3px 0 0 rgba(26, 26, 26, 0.85);
+}
+.ornate-header {
+  background: linear-gradient(90deg, rgba(184,134,11,0.06), transparent);
+  border-bottom: 2px solid var(--color-ink);
+}
+
+/* D&D-style button base */
+.btn-parchment {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid var(--color-ink);
+  background: var(--color-parchment);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 0.8125rem;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  box-shadow: 2px 2px 0 0 rgba(26, 26, 26, 0.85);
+  line-height: 1.4;
+}
+.btn-parchment:hover { color: var(--color-wax-red); }
+.btn-parchment:disabled { opacity: 0.3; cursor: not-allowed; }
+.btn-parchment.active {
+  background: #ebe4d0;
+  color: var(--color-wax-red);
+}
+
+/* Category decorative icons */
+.category-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+.category-icon svg { width: 100%; height: 100%; }
 
 /* Ligne de registre / livre de comptes */
 .ledger-line {
