@@ -6,7 +6,7 @@ export function ToastContainer() {
   const { toasts, removeToast } = useUIStore()
 
   return (
-    <div className="fixed bottom-4 right-4 z-[10000] flex flex-col gap-2 max-w-[90vw] sm:max-w-[360px]">
+    <div className="fixed bottom-4 right-4 z-[10000] flex flex-col gap-2 max-w-[360px]" aria-live="polite" aria-relevant="additions removals">
       <AnimatePresence>
         {toasts.map((toast) => (
           <motion.div
@@ -18,12 +18,13 @@ export function ToastContainer() {
               toast.type === 'achievement' ? 'border-gold-tarnish' :
               toast.type === 'success' ? 'border-ink' : 'border-wax-red'
             }`}
+            role={toast.type === 'error' ? 'alert' : 'status'}
           >
             <button
               type="button"
               onClick={() => removeToast(toast.id)}
               className="absolute top-1 right-1 w-6 h-6 flex items-center justify-center text-sm text-ink hover:text-wax-red transition-colors"
-              aria-label="Dismiss"
+              aria-label={`Dismiss notification: ${toast.title}`}
             >
               &times;
             </button>
@@ -39,9 +40,9 @@ export function ToastContainer() {
                 {toast.type === 'achievement' && (
                   <div className="text-[9px] font-display font-bold uppercase tracking-[0.1em] text-wax-red mb-0.5">Achievement Unlocked!</div>
                 )}
-                <div className="font-display font-semibold text-xs text-ink">{toast.title}</div>
+                <div className="font-display font-semibold text-sm text-ink">{toast.title}</div>
                 {toast.message && (
-                  <div className="text-[10px] text-sepia mt-0.5 font-mono">{toast.message}</div>
+                  <div className="text-xs text-sepia mt-0.5 font-mono">{toast.message}</div>
                 )}
               </div>
             </div>

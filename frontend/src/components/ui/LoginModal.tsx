@@ -24,10 +24,10 @@ export function LoginModal() {
     <Modal open={loginModalOpen} onClose={() => setLoginModalOpen(false)} title="Join the Guild">
       <div className="flex flex-col items-center text-center mb-8 gap-6">
         <div className="border-[3px] border-double border-ink bg-parchment p-3 rounded-sm" style={{ boxShadow: '4px 4px 0 0 #1a1a1a' }}>
-          <BrandLogo noBlend className="w-14 h-14 sm:w-16 sm:h-16" />
+          <BrandLogo noBlend className="w-16 h-16" />
         </div>
         <div>
-          <div className="font-display text-xl sm:text-2xl font-bold text-gray-900 mb-3 leading-relaxed">Welcome, Wanderer</div>
+          <div className="font-display text-2xl font-bold text-gray-900 mb-3 leading-relaxed">Welcome, Wanderer</div>
           <p className="text-base text-gray-800 leading-relaxed font-mono max-w-md mx-auto">
             Sign in to begin your quest. Upload captures, earn XP, unlock badges, and rise through the ranks.
           </p>
@@ -41,7 +41,7 @@ export function LoginModal() {
           onChange={(e) => setTosAccepted(e.target.checked)}
           className="mt-1 w-5 h-5 accent-wax-red border-2 border-ink rounded-sm shrink-0"
         />
-        <span className="text-sm sm:text-base text-gray-800 group-hover:text-gray-900 transition-colors leading-relaxed text-left">
+        <span className="text-base text-gray-800 group-hover:text-gray-900 transition-colors leading-relaxed text-left">
           I accept the{' '}
           <Link
             to="/terms"
@@ -65,7 +65,7 @@ export function LoginModal() {
         Continue with GitHub
       </button>
 
-      <p className="text-xs sm:text-sm text-gray-700 text-center mt-8 font-mono leading-relaxed">
+      <p className="text-sm text-gray-700 text-center mt-8 font-mono leading-relaxed">
         Your GitHub profile will be used to forge your player identity.
       </p>
     </Modal>

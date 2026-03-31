@@ -38,10 +38,10 @@ export function ProfilePage() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
-        <section className="rulebook-frame p-5 sm:p-6 bg-parchment text-center space-y-10">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-xl mx-auto">
+    <div className="flex-1 min-h-0">
+      <div className="max-w-3xl mx-auto px-8 py-8 space-y-6">
+        <section className="rulebook-frame p-6 bg-parchment text-center space-y-10">
+          <h1 className="font-display text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-xl mx-auto">
             Operator&apos;s folio
           </h1>
           <div className="flex flex-col items-center gap-8">
@@ -56,7 +56,7 @@ export function ProfilePage() {
                 </p>
               )}
               {profile.created_at && (
-                <p className="flex items-center justify-center gap-2 text-xs text-sepia font-mono leading-loose">
+                <p className="flex items-center justify-center gap-2 text-sm text-sepia font-mono leading-loose">
                   <Calendar size={14} strokeWidth={1.75} /> Joined {formatDate(profile.created_at)}
                 </p>
               )}
@@ -64,16 +64,16 @@ export function ProfilePage() {
           </div>
         </section>
 
-        <section className="rulebook-frame p-5 sm:p-6 bg-parchment space-y-8">
-          <h2 className="font-display text-xl sm:text-2xl font-bold text-ink text-center leading-loose border-b border-black/30 pb-6">
+        <section className="rulebook-frame p-6 bg-parchment space-y-8">
+          <h2 className="font-display text-2xl font-bold text-ink text-center leading-loose border-b border-black/30 pb-6">
             Deeds ledger
           </h2>
           <ul className="list-none flex flex-col">
             {statRows.map((row) => (
-              <li key={row.label} className="ledger-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-8 px-2 first:pt-2">
+              <li key={row.label} className="ledger-line flex items-center justify-between gap-4 py-8 px-2 first:pt-2">
                 <div className="flex items-center gap-5 min-w-0">
                   <span className={`shrink-0 ${row.color} [&_svg]:text-ink`}>{row.icon}</span>
-                  <span className="font-display text-sm sm:text-base text-sepia leading-loose text-left">{row.label}</span>
+                  <span className="font-display text-base text-sepia leading-loose text-left">{row.label}</span>
                 </div>
                 <span className={`font-mono font-bold text-xl tabular-nums text-right shrink-0 ${row.color}`}>
                   {formatNumber(row.value)}
@@ -84,7 +84,7 @@ export function ProfilePage() {
         </section>
 
         {earnedBadges.length > 0 && (
-          <section className="rulebook-frame p-5 sm:p-6 bg-parchment space-y-10">
+          <section className="rulebook-frame p-6 bg-parchment space-y-10">
             <header className="text-center space-y-4 border-b border-black/30 pb-8">
               <h2 className="font-display text-2xl font-bold text-wax-red leading-loose">Hall of seals</h2>
               <p className="font-mono text-sm text-sepia leading-loose">
@@ -99,7 +99,7 @@ export function ProfilePage() {
                   <h3 className="font-display text-center text-sm font-bold uppercase tracking-[0.25em] text-gold-tarnish border-b border-black/20 pb-4 leading-loose">
                     {getCategoryLabel(category)}
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-10">
+                  <div className="grid grid-cols-2 gap-10">
                     {earned.map((badge) => (
                       <BadgeCard key={badge.id} badge={badge} />
                     ))}

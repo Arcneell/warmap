@@ -30,18 +30,18 @@ export function ArmoryPage() {
 
   return (
     <div className="flex min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden">
-      <div className="mb-1 w-full shrink-0 space-y-4 px-4 pt-5 pb-4 sm:px-6 md:px-8">
+      <div className="mb-1 w-full shrink-0 space-y-4 px-8 pt-5 pb-4">
         <header className="mx-auto w-full max-w-3xl space-y-6 text-center">
-          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 text-gray-900">
+          <h1 className="font-display text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 text-gray-900">
             The Armory
           </h1>
-          <p className="mx-auto max-w-2xl text-base sm:text-lg text-gray-800 font-sans leading-relaxed">
+          <p className="mx-auto max-w-2xl text-lg text-gray-800 font-sans leading-relaxed">
             Ledger of captured gear and chalked towers — one ruled line per entry, guild-book style.
           </p>
         </header>
 
         <div className="flex w-full flex-col items-center gap-8 text-center">
-          <div className="flex flex-wrap justify-center gap-4 sm:gap-5">
+          <div className="flex flex-wrap justify-center gap-5" role="tablist" aria-label="Armory categories">
             <TabSeal active={tab === 'bluetooth'} onClick={() => setTab('bluetooth')} icon={<Bluetooth size={18} strokeWidth={1.75} />} label="Bluetooth" count={btData?.total} />
             <TabSeal active={tab === 'cell'} onClick={() => setTab('cell')} icon={<Radio size={18} strokeWidth={1.75} />} label="Cell" count={cellData?.total} />
           </div>
@@ -52,18 +52,20 @@ export function ArmoryPage() {
                 value={btSearch}
                 onChange={(v) => { setBtSearch(v); setBtPage(0) }}
                 placeholder="Search by name or address…"
+                ariaLabel="Search Bluetooth devices by name or address"
               />
             </div>
           )}
 
           {tab === 'cell' && (
-            <div className="flex w-full max-w-4xl flex-wrap justify-center gap-3 sm:gap-4">
+            <div className="flex w-full max-w-4xl flex-wrap justify-center gap-4">
               {radios.map((r) => (
                 <button
                   key={r || 'all'}
                   type="button"
                   onClick={() => { setCellRadio(r); setCellPage(0) }}
                   className={`btn-parchment px-3 py-1.5 text-xs font-mono ${cellRadio === r ? 'active' : ''}`}
+                  aria-pressed={cellRadio === r}
                 >
                   {r || 'All'}
                 </button>
@@ -71,9 +73,13 @@ export function ArmoryPage() {
             </div>
           )}
         </div>
+
+        <div className="mx-auto max-w-3xl text-center text-sm font-mono text-sepia">
+          {formatNumber(tab === 'bluetooth' ? (btData?.total ?? 0) : (cellData?.total ?? 0))} entries in the current ledger.
+        </div>
       </div>
 
-      <div className="min-h-0 w-full min-w-0 flex-1 overflow-hidden px-4 pb-4 sm:px-6 md:px-8 sm:pb-6">
+      <div className="min-h-0 w-full min-w-0 flex-1 overflow-hidden px-8 pb-6">
         <div className="rulebook-frame h-full min-h-[240px] flex flex-col bg-parchment overflow-hidden w-full">
           {loading ? (
             <div className="flex-1 flex flex-col items-center justify-center gap-6 p-12 text-sepia">
@@ -103,12 +109,12 @@ export function ArmoryPage() {
           )}
 
           {totalPages > 1 && !loading && (
-            <footer className="flex items-center justify-center gap-4 border-t-2 border-ink bg-[#ebe4d0]/80 px-4 py-3">
+            <footer className="sticky bottom-0 flex items-center justify-center gap-4 border-t-2 border-ink bg-[#ebe4d0] px-4 py-3">
               <button type="button" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}
                 className="p-1.5 text-sepia hover:text-ink disabled:opacity-25 transition-colors" aria-label="Previous page">
                 <ChevronLeft size={18} strokeWidth={1.75} />
               </button>
-              <span className="text-xs font-mono tabular-nums text-sepia">Page {page + 1} of {totalPages}</span>
+              <span className="text-xs font-mono tabular-nums text-sepia">Page {page + 1} of {totalPages} · {formatNumber(tab === 'bluetooth' ? (btData?.total ?? 0) : (cellData?.total ?? 0))} results</span>
               <button type="button" onClick={() => setPage(page + 1)} disabled={page >= totalPages - 1}
                 className="p-1.5 text-sepia hover:text-ink disabled:opacity-25 transition-colors" aria-label="Next page">
                 <ChevronRight size={18} strokeWidth={1.75} />
@@ -132,6 +138,9 @@ function TabSeal({ active, onClick, icon, label, count }: {
     <button
       type="button"
       onClick={onClick}
+      role="tab"
+      aria-selected={active}
+      aria-pressed={active}
       className={`btn-parchment gap-2 px-4 py-2 text-sm ${active ? 'active' : ''}`}
     >
       {icon}
@@ -154,14 +163,14 @@ function LedgerList({ children }: { children: React.ReactNode }) {
 function EmptyLedger({ message }: { message: string }) {
   return (
     <div className="flex-1 flex items-center justify-center p-16 text-center">
-      <p className="text-gray-800 text-base sm:text-lg font-sans max-w-md leading-relaxed">{message}</p>
+      <p className="text-gray-800 text-lg font-sans max-w-md leading-relaxed">{message}</p>
     </div>
   )
 }
 
 function BtLedgerRow({ row }: { row: BtDevice }) {
   return (
-    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 sm:py-4">
+    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4">
       <div className="min-w-0 flex-1">
         <p className={`font-display text-sm font-semibold ${row.name ? 'text-ink' : 'text-muted italic'}`}>
           {row.name || '<unknown>'}
@@ -186,7 +195,7 @@ function BtLedgerRow({ row }: { row: BtDevice }) {
 
 function CellLedgerRow({ row }: { row: CellTower }) {
   return (
-    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 sm:py-4">
+    <li className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-6 py-4">
       <span className="inline-flex items-center px-2.5 py-1 border border-ink text-[10px] font-mono font-bold bg-parchment text-cell">
         {row.radio}
       </span>

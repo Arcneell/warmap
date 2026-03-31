@@ -248,12 +248,20 @@ export function MapPage() {
           </button>
         </div>
 
+        <div className="absolute top-3 left-3 z-[1000] max-w-[19rem]">
+          <div className="parchment-scrap p-3 text-xs font-mono text-sepia leading-relaxed">
+            <p className="font-display text-sm text-ink mb-1.5">Scout flow</p>
+            <p>1) Upload captures 2) Filter layers 3) Search SSID/BSSID to center the map.</p>
+          </div>
+        </div>
+
         {/* Search bottom-right */}
-        <div className="absolute bottom-3 left-3 right-3 sm:left-auto sm:right-3 z-[1000] sm:w-80">
+        <div className="absolute bottom-3 right-3 z-[1000] w-80">
           <SearchField
             value={searchVal}
             onChange={setSearchVal}
             placeholder="Search SSID or BSSID..."
+            ariaLabel="Search network by SSID or BSSID"
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
         </div>
@@ -267,12 +275,14 @@ function CtrlBtn({ active, onClick, icon, label }: { active: boolean; onClick: (
     <button
       type="button"
       onClick={onClick}
+      aria-pressed={active}
+      aria-label={`${label} view`}
       className={`flex items-center gap-1.5 px-3 py-2 text-xs font-display font-bold transition-colors ${
         active ? 'bg-[#ebe4d0] text-wax-red' : 'text-sepia hover:text-ink'
       }`}
     >
       {icon}
-      <span className="hidden sm:inline">{label}</span>
+      <span>{label}</span>
     </button>
   )
 }

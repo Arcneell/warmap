@@ -1,17 +1,15 @@
 import { useAuthStore } from '@/stores/authStore'
 import { useMapStore } from '@/stores/mapStore'
-import { useUIStore } from '@/stores/uiStore'
 import { useMyProfile, useGlobalStats } from '@/api/hooks'
 import { XPBar } from '@/components/rpg/XPBar'
 import { formatNumber, encryptionColor } from '@/lib/format'
-import { Wifi, Bluetooth, Radio, X } from 'lucide-react'
+import { Wifi, Bluetooth, Radio } from 'lucide-react'
 import { SearchField } from '@/components/ui/SearchField'
 import { useState } from 'react'
 import { BrandLogo } from '@/components/brand/BrandLogo'
 
 export function Sidebar() {
   const { isAuthenticated } = useAuthStore()
-  const { sidebarOpen, setSidebarOpen } = useUIStore()
   const {
     mineOnly, toggleMineOnly, showBtLayer, toggleBtLayer,
     showCellLayer, toggleCellLayer, encryptionFilters, setEncryptionFilter,
@@ -22,31 +20,15 @@ export function Sidebar() {
   const encryptions = ['WPA3', 'WPA2', 'WPA', 'WEP', 'Open', 'Unknown']
 
   return (
-    <>
-      {sidebarOpen && (
-        <div className="fixed inset-0 bg-ink/40 z-[55] lg:hidden" onClick={() => setSidebarOpen(false)} aria-hidden />
-      )}
-
-      <aside
-        className={`
-          leather-tabs w-[280px] flex-shrink-0 overflow-y-auto
-          flex flex-col gap-4 p-4 lg:p-5
-          fixed inset-y-0 left-0 z-[60] transition-transform duration-300 ease-out
-          lg:static lg:z-auto lg:translate-x-0 lg:h-full lg:min-h-0
-          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
-        `}
-        aria-label="Map tools and filters"
-      >
-        {/* Mobile close */}
-        <div className="flex lg:hidden items-center justify-between gap-3 pb-3 mb-1 border-b border-black/20">
-          <div className="flex items-center gap-2 min-w-0">
-            <BrandLogo className="w-8 h-8" />
-            <span className="font-display font-bold text-base text-parchment/95 truncate">Wardrove</span>
-          </div>
-          <button type="button" onClick={() => setSidebarOpen(false)} className="p-2 text-parchment/80 hover:text-parchment" aria-label="Close">
-            <X size={18} strokeWidth={1.75} />
-          </button>
-        </div>
+    <aside
+      id="map-tools-sidebar"
+      className="leather-tabs w-[300px] flex-shrink-0 overflow-y-auto flex flex-col gap-4 p-5 h-full min-h-0"
+      aria-label="Map tools and filters"
+    >
+      <div className="flex items-center gap-2 min-w-0 pb-3 mb-1 border-b border-black/20">
+        <BrandLogo className="w-8 h-8" />
+        <span className="font-display font-bold text-base text-parchment/95 truncate">Wardrove</span>
+      </div>
 
         {/* Profile */}
         {isAuthenticated && profile && (
@@ -138,8 +120,7 @@ export function Sidebar() {
             </div>
           </section>
         )}
-      </aside>
-    </>
+    </aside>
   )
 }
 

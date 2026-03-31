@@ -17,6 +17,7 @@ interface UIState {
   setSidebarOpen: (open: boolean) => void
   setUploadModalOpen: (open: boolean) => void
   setLoginModalOpen: (open: boolean) => void
+  closeOverlays: () => void
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
 }
@@ -32,6 +33,7 @@ export const useUIStore = create<UIState>((set) => ({
   setSidebarOpen: (open) => set({ sidebarOpen: open }),
   setUploadModalOpen: (open) => set({ uploadModalOpen: open }),
   setLoginModalOpen: (open) => set({ loginModalOpen: open }),
+  closeOverlays: () => set({ sidebarOpen: false, uploadModalOpen: false, loginModalOpen: false }),
   addToast: (toast) => {
     const id = `toast-${++toastId}`
     set((s) => ({ toasts: [...s.toasts, { ...toast, id }] }))

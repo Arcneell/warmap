@@ -24,8 +24,8 @@ export function MyQuarters() {
 
   if (!user || !profile) {
     return (
-      <div className="flex-1 flex items-center justify-center p-10 sm:p-16">
-        <div className="rulebook-frame bg-parchment px-10 py-14 sm:px-14 sm:py-16 max-w-md text-center space-y-6">
+      <div className="flex-1 flex items-center justify-center p-16">
+        <div className="rulebook-frame bg-parchment px-14 py-16 max-w-md text-center space-y-6">
           <Shield size={44} strokeWidth={1.5} className="mx-auto text-wax-red" />
           <h1 className="font-display text-xl font-bold text-ink leading-loose border-b border-black/30 pb-6">
             Quarters locked
@@ -66,17 +66,20 @@ export function MyQuarters() {
   ]
 
   return (
-    <div className="flex-1 overflow-y-auto min-h-0">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="flex-1 min-h-0">
+      <div className="max-w-5xl mx-auto px-8 py-8 space-y-6">
         <header className="text-center space-y-2">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-wax-red tracking-wide">My Quarters</h1>
-          <p className="text-sm text-sepia">Your chapter house — rank, spoils, quests, and API seals.</p>
+          <h1 className="font-display text-3xl font-bold text-wax-red tracking-wide">My Quarters</h1>
+          <p className="text-base text-sepia">Your chapter house — rank, spoils, quests, and API seals.</p>
         </header>
 
-        <nav className="flex flex-wrap gap-2 justify-center" aria-label="Quarters sections">
+        <nav className="flex flex-wrap gap-3 justify-center" aria-label="Quarters sections" role="tablist">
           {tabs.map((t) => (
             <button key={t.key} type="button" onClick={() => setTab(t.key)}
-              className={`btn-parchment text-xs ${tab === t.key ? 'active' : ''}`}
+              role="tab"
+              aria-selected={tab === t.key}
+              aria-pressed={tab === t.key}
+              className={`btn-parchment text-sm ${tab === t.key ? 'active' : ''}`}
             >
               {t.icon} {t.label}
             </button>
@@ -85,14 +88,14 @@ export function MyQuarters() {
 
         {tab === 'overview' && (
           <div className="space-y-6">
-            <section className="rulebook-frame bg-parchment p-5 sm:p-6">
-              <div className="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
+            <section className="rulebook-frame bg-parchment p-6">
+              <div className="flex flex-row items-center gap-14">
                 <div className="shrink-0">
                   <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={150} avatarUrl={user.avatar_url} />
                 </div>
-                <div className="flex-1 text-center lg:text-left space-y-8 w-full min-w-0">
+                <div className="flex-1 text-left space-y-8 w-full min-w-0">
                   <div className="space-y-3">
-                    <h2 className="font-display text-2xl font-bold text-ink border-b border-black/25 pb-4 inline-block lg:block leading-loose">
+                    <h2 className="font-display text-2xl font-bold text-ink border-b border-black/25 pb-4 block leading-loose">
                       {user.username}
                     </h2>
                     {profile.global_rank > 0 && (
@@ -101,14 +104,14 @@ export function MyQuarters() {
                       </p>
                     )}
                   </div>
-                  <div className="max-w-xl mx-auto lg:mx-0 pt-2">
+                  <div className="max-w-xl mx-0 pt-2">
                     <XPBar xp={profile.xp} level={profile.level} xpProgress={profile.xp_progress} xpCurrent={profile.xp_current_level} xpNext={profile.xp_next_level} />
                   </div>
                 </div>
               </div>
             </section>
 
-            <section className="rulebook-frame bg-parchment p-5 sm:p-6">
+            <section className="rulebook-frame bg-parchment p-6">
               <h2 className="font-display text-center text-xl font-bold text-ink leading-loose border-b border-black/30 pb-8 mb-2">
                 Field counts
               </h2>
@@ -116,11 +119,11 @@ export function MyQuarters() {
                 {statRows.map((row) => (
                   <li
                     key={row.label}
-                    className="ledger-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-8 px-2 first:pt-6"
+                    className="ledger-line flex flex-row items-center justify-between gap-4 py-8 px-2 first:pt-6"
                   >
                     <div className="flex items-center gap-5 min-w-0">
                       <span className={`shrink-0 ${row.color} [&_svg]:text-ink`}>{row.icon}</span>
-                      <span className="font-display text-sm sm:text-base text-sepia leading-loose">{row.label}</span>
+                      <span className="font-display text-base text-sepia leading-loose">{row.label}</span>
                     </div>
                     <span className={`font-mono font-bold text-xl tabular-nums shrink-0 ${row.color}`}>
                       {formatNumber(row.value)}
@@ -131,9 +134,9 @@ export function MyQuarters() {
             </section>
 
             {earnedCount > 0 && (
-              <section className="rulebook-frame bg-parchment p-5 sm:p-6 space-y-8">
-                <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 border-b border-black/30 pb-8">
-                  <h2 className="font-display text-xl font-bold text-wax-red text-center sm:text-left leading-loose">
+              <section className="rulebook-frame bg-parchment p-6 space-y-8">
+                <header className="flex flex-row items-end justify-between gap-4 border-b border-black/30 pb-8">
+                  <h2 className="font-display text-xl font-bold text-wax-red text-left leading-loose">
                     Recent seals
                   </h2>
                   <button
@@ -144,7 +147,7 @@ export function MyQuarters() {
                     View full trophy room
                   </button>
                 </header>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-10">
+                <div className="grid grid-cols-2 gap-10">
                   {badges?.filter((b) => b.earned).slice(-4).reverse().map((badge) => (
                     <BadgeCard key={badge.id} badge={badge} />
                   ))}
@@ -155,9 +158,9 @@ export function MyQuarters() {
         )}
 
         {tab === 'badges' && (
-          <div className="space-y-12 sm:space-y-14">
-            <section className="rulebook-frame bg-parchment p-5 sm:p-6 text-center space-y-8">
-              <h2 className="font-display text-4xl sm:text-5xl font-bold text-gold-tarnish tabular-nums leading-loose border-b border-black/25 pb-8 inline-block min-w-[12rem]">
+          <div className="space-y-14">
+            <section className="rulebook-frame bg-parchment p-6 text-center space-y-8">
+              <h2 className="font-display text-5xl font-bold text-gold-tarnish tabular-nums leading-loose border-b border-black/25 pb-8 inline-block min-w-[12rem]">
                 {earnedCount} / {totalCount}
               </h2>
               <p className="text-sm text-sepia font-mono leading-loose">Badges collected</p>
@@ -179,7 +182,7 @@ export function MyQuarters() {
                     {categoryBadges.filter((b) => b.earned).length} / {categoryBadges.length} earned
                   </p>
                 </header>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                <div className="grid grid-cols-3 gap-10">
                   {categoryBadges.map((badge) => (
                     <BadgeCard key={badge.id} badge={badge} showProgress currentValue={userValues[badge.criteria_type] ?? 0} />
                   ))}
@@ -192,12 +195,12 @@ export function MyQuarters() {
         {tab === 'uploads' && (
           <div className="space-y-6">
             {!uploads || uploads.length === 0 ? (
-              <div className="rulebook-frame bg-parchment px-10 py-16 sm:py-20 text-center space-y-6">
+              <div className="rulebook-frame bg-parchment px-10 py-20 text-center space-y-6">
                 <ScrollText size={40} strokeWidth={1.5} className="mx-auto text-muted" />
                 <h2 className="font-display text-xl font-bold text-ink leading-loose border-b border-black/25 pb-6 max-w-sm mx-auto">
                   No quests yet
                 </h2>
-                <p className="text-sm font-mono text-sepia leading-loose max-w-md mx-auto">
+                <p className="text-base font-mono text-sepia leading-loose max-w-md mx-auto">
                   Upload your first capture to ink the first line of the quest log.
                 </p>
               </div>
@@ -206,20 +209,20 @@ export function MyQuarters() {
                 {uploads.map((tx) => (
                   <li
                     key={tx.id}
-                    className="rulebook-frame bg-parchment p-8 sm:p-10 flex flex-col lg:flex-row lg:items-center gap-6 lg:gap-10"
+                    className="rulebook-frame bg-parchment p-10 flex flex-row items-center gap-10"
                   >
                     <div className="flex items-start gap-5 min-w-0 flex-1">
                       <StatusIcon status={tx.status} />
                       <div className="min-w-0 space-y-3">
-                        <p className="font-mono text-sm sm:text-base font-semibold text-ink truncate leading-relaxed">{tx.filename}</p>
-                        <p className="text-xs sm:text-sm text-sepia font-sans leading-loose">
+                        <p className="font-mono text-base font-semibold text-ink truncate leading-relaxed">{tx.filename}</p>
+                        <p className="text-sm text-sepia font-sans leading-loose">
                           {timeAgo(tx.uploaded_at)}
                           {tx.file_format && <span className="ml-2 opacity-80">{tx.file_format}</span>}
                         </p>
                       </div>
                     </div>
                     {tx.status === 'done' && (
-                      <div className="flex flex-wrap gap-8 lg:gap-10 lg:justify-end shrink-0">
+                      <div className="flex flex-wrap gap-10 justify-end shrink-0">
                         <MiniStat label="New" value={tx.new_networks} color="text-ink" />
                         <MiniStat label="Updated" value={tx.updated_networks} color="text-wifi" />
                         <MiniStat label="XP" value={tx.xp_earned} color="text-gold-tarnish" />
@@ -279,12 +282,12 @@ function SettingsTab() {
   }
 
   return (
-    <section className="rulebook-frame bg-parchment p-5 sm:p-6 space-y-10">
+    <section className="rulebook-frame bg-parchment p-6 space-y-10">
       <header className="text-center space-y-4 border-b border-black/30 pb-8">
         <div className="flex justify-center text-wax-red">
           <Key size={22} strokeWidth={1.75} />
         </div>
-        <h2 className="font-display text-xl sm:text-2xl font-bold text-wax-red tracking-wide leading-loose px-4">
+        <h2 className="font-display text-2xl font-bold text-wax-red tracking-wide leading-loose px-4">
           API tokens
         </h2>
         <p className="text-base text-gray-800 font-sans leading-relaxed max-w-lg mx-auto">
@@ -292,8 +295,10 @@ function SettingsTab() {
         </p>
       </header>
 
-      <div className="flex flex-col sm:flex-row gap-5">
+      <div className="flex flex-row gap-5">
+        <label htmlFor="new-token-name" className="sr-only">Token name</label>
         <input
+          id="new-token-name"
           value={newTokenName}
           onChange={(e) => setNewTokenName(e.target.value)}
           placeholder="Name for this key…"
@@ -311,12 +316,12 @@ function SettingsTab() {
       </div>
 
       {newToken && (
-        <div className="border-2 border-dashed border-ink bg-[#fdf8ed] p-6 sm:p-8 space-y-4">
-          <p className="text-sm font-display font-semibold text-wax-red leading-loose text-center sm:text-left">
+        <div className="border-2 border-dashed border-ink bg-[#fdf8ed] p-8 space-y-4">
+          <p className="text-sm font-display font-semibold text-wax-red leading-loose text-left">
             Copy now — it will not be shown again.
           </p>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-            <code className="flex-1 font-mono text-xs sm:text-sm text-ink bg-[#ebe4d0] px-4 py-3 border border-ink/30 break-all leading-relaxed">
+          <div className="flex flex-row items-center gap-3">
+            <code className="flex-1 font-mono text-sm text-ink bg-[#ebe4d0] px-4 py-3 border border-ink/30 break-all leading-relaxed">
               {newToken}
             </code>
             <button
@@ -338,7 +343,7 @@ function SettingsTab() {
           tokens.map((t) => (
             <li
               key={t.id}
-              className="ledger-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-6 px-4 border-2 border-ink/30 bg-[#fdf8ed]"
+              className="ledger-line flex flex-row items-center justify-between gap-4 py-6 px-4 border-2 border-ink/30 bg-[#fdf8ed]"
             >
               <div className="space-y-2 min-w-0">
                 <p className={`text-base font-display font-semibold leading-relaxed ${t.revoked ? 'text-muted line-through' : 'text-ink'}`}>
@@ -352,7 +357,7 @@ function SettingsTab() {
                 <button
                   type="button"
                   onClick={() => revokeToken(t.id)}
-                  className="text-wax-red/90 hover:text-wax-red transition-colors p-2 self-start sm:self-center"
+                  className="text-wax-red/90 hover:text-wax-red transition-colors p-2 self-center"
                   title="Revoke"
                 >
                   <Trash2 size={18} strokeWidth={1.75} />
@@ -381,7 +386,7 @@ function StatusIcon({ status }: { status: string }) {
 
 function MiniStat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className="text-left sm:text-right space-y-1">
+    <div className="text-right space-y-1">
       <p className={`font-mono text-sm font-semibold tabular-nums ${color}`}>{formatNumber(value)}</p>
       <p className="text-[10px] text-sepia uppercase tracking-wider leading-loose">{label}</p>
     </div>

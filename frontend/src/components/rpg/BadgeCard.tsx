@@ -31,7 +31,7 @@ export function BadgeCard({ badge, showProgress, currentValue }: BadgeCardProps)
   return (
     <motion.article
       whileHover={earned ? { y: -3 } : undefined}
-      className={`relative flex flex-col items-stretch p-8 sm:p-10 border-4 border-double transition-all leading-loose ${
+      className={`relative flex flex-col items-stretch p-10 border-4 border-double transition-all leading-loose ${
         earned ? `${tier.glowClass}` : 'opacity-60 grayscale'
       }`}
       style={{
@@ -50,7 +50,7 @@ export function BadgeCard({ badge, showProgress, currentValue }: BadgeCardProps)
       <div className="mb-8 flex justify-center pt-2">
         {earned ? (
           <div
-            className="badge-seal-frame w-16 h-16 sm:w-[4.5rem] sm:h-[4.5rem] flex items-center justify-center [&_svg]:max-w-[2.75rem] [&_svg]:max-h-[2.75rem]"
+            className="badge-seal-frame w-[4.5rem] h-[4.5rem] flex items-center justify-center [&_svg]:max-w-[2.75rem] [&_svg]:max-h-[2.75rem]"
             style={{ color: tier.color }}
           >
             <div
@@ -67,12 +67,12 @@ export function BadgeCard({ badge, showProgress, currentValue }: BadgeCardProps)
 
       <div className="text-center space-y-4 flex-1 flex flex-col">
         <h3
-          className="font-display font-bold text-sm sm:text-base border-b border-black/25 pb-4 leading-relaxed px-2"
+          className="font-display font-bold text-base border-b border-black/25 pb-4 leading-relaxed px-2"
           style={{ color: earned ? tier.color : 'var(--color-muted)' }}
         >
           {badge.name}
         </h3>
-        <p className="text-xs sm:text-sm text-sepia leading-loose text-center px-1">
+        <p className="text-sm text-sepia leading-loose text-center px-1">
           {badge.description}
         </p>
       </div>

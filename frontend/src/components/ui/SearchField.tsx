@@ -5,6 +5,8 @@ type SearchFieldProps = {
   value: string
   onChange: (v: string) => void
   placeholder: string
+  label?: string
+  ariaLabel?: string
   onKeyDown?: (e: KeyboardEvent<HTMLInputElement>) => void
   /** Extra classes on outer shell (border container) */
   className?: string
@@ -16,6 +18,8 @@ export function SearchField({
   value,
   onChange,
   placeholder,
+  label,
+  ariaLabel,
   onKeyDown,
   className = '',
   inputClassName = '',
@@ -37,7 +41,8 @@ export function SearchField({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={onKeyDown}
         placeholder={placeholder}
-        className={`min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-4 text-base font-mono text-gray-900 placeholder:text-gray-500 outline-none focus:ring-0 leading-relaxed ${inputClassName}`}
+        aria-label={ariaLabel ?? label ?? placeholder}
+        className={`min-w-0 flex-1 border-0 bg-transparent py-3 pl-3 pr-4 text-base font-mono text-gray-900 placeholder:text-gray-500 leading-relaxed ${inputClassName}`}
       />
     </div>
   )

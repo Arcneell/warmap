@@ -50,24 +50,33 @@ export function UploadModal() {
     <Modal open={uploadModalOpen} onClose={handleClose} title="Submit Captures">
       {!results.length ? (
         <>
-          <div
+          <button
+            type="button"
             onDragOver={(e) => { e.preventDefault(); setDragover(true) }}
             onDragLeave={() => setDragover(false)}
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
-            className={`border-[3px] border-dashed p-10 sm:p-12 text-center cursor-pointer transition-colors ${
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                inputRef.current?.click()
+              }
+            }}
+            aria-label="Choose capture files to upload"
+            aria-describedby="upload-help"
+            className={`border-[3px] border-dashed p-12 text-center cursor-pointer transition-colors ${
               dragover ? 'border-wax-red bg-[#ebe4d0]' : 'border-ink hover:border-wax-red/60'
             }`}
             style={{ boxShadow: dragover ? '4px 4px 0 0 #1a1a1a' : undefined }}
           >
             <FileUp size={32} strokeWidth={1.5} className="mx-auto mb-4 text-gray-800" />
             <p className="text-base text-gray-900 mb-3 font-display leading-relaxed">Drag &amp; drop captures here</p>
-            <p className="text-sm text-gray-700 mb-6 font-mono leading-relaxed">WiGLE CSV, Kismet, KML, NetStumbler, and more</p>
+            <p id="upload-help" className="text-sm text-gray-700 mb-6 font-mono leading-relaxed">WiGLE CSV, Kismet, KML, NetStumbler, and more</p>
             <span className="inline-block px-6 py-3 border-2 border-ink bg-parchment text-gold-tarnish text-sm font-display font-bold leading-relaxed">
               Browse Files
             </span>
-            <input ref={inputRef} type="file" multiple accept={ACCEPTED} onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="hidden" />
-          </div>
+            <input id="upload-files-input" ref={inputRef} type="file" multiple accept={ACCEPTED} onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="hidden" />
+          </button>
 
           {files.length > 0 && (
             <div className="mt-6 space-y-2">
@@ -98,7 +107,7 @@ export function UploadModal() {
         <>
           <div className="text-center py-6">
             {isProcessing && (
-              <div className="flex flex-col items-center gap-5">
+              <div className="flex flex-col items-center gap-5" role="status" aria-live="polite">
                 <Loader2 size={32} className="text-wax-red animate-spin" strokeWidth={1.75} />
                 <div className="text-base font-display font-semibold text-gray-900 leading-relaxed">Processing captures...</div>
                 <div className="text-sm text-gray-800 capitalize font-mono">{sseStatus?.status ?? 'Queued'}</div>
@@ -138,7 +147,7 @@ export function UploadModal() {
             )}
 
             {isError && (
-              <div className="flex flex-col items-center gap-4">
+              <div className="flex flex-col items-center gap-4" role="alert">
                 <XCircle size={32} className="text-wax-red" strokeWidth={1.5} />
                 <div className="text-base font-display font-semibold text-wax-red leading-relaxed">Processing Failed</div>
                 <div className="text-sm text-gray-800 font-mono leading-relaxed max-w-md">{sseStatus?.status_message ?? 'Unknown error'}</div>

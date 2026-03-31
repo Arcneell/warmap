@@ -19,7 +19,7 @@ interface DataTableProps<T> {
 
 export function DataTable<T>({ columns, data, loading, emptyMessage = 'No data found', page, totalPages, onPageChange }: DataTableProps<T>) {
   return (
-    <div className="flex flex-col flex-1 overflow-hidden bg-parchment font-mono">
+    <div className="flex flex-col flex-1 overflow-hidden bg-parchment font-mono" aria-busy={loading ? 'true' : 'false'}>
       <div className="flex-1 overflow-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -38,7 +38,7 @@ export function DataTable<T>({ columns, data, loading, emptyMessage = 'No data f
             {loading ? (
               <tr>
                 <td colSpan={columns.length} className="px-4 py-16 text-center text-sepia">
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2" role="status" aria-live="polite">
                     <div
                       className="w-5 h-5 border-2 border-ink border-t-transparent animate-spin"
                     />
@@ -48,7 +48,7 @@ export function DataTable<T>({ columns, data, loading, emptyMessage = 'No data f
               </tr>
             ) : data.length === 0 ? (
               <tr>
-                <td colSpan={columns.length} className="px-4 py-16 text-center text-muted text-[14px]">
+                <td colSpan={columns.length} className="px-4 py-16 text-center text-muted text-[14px]" role="status" aria-live="polite">
                   {emptyMessage}
                 </td>
               </tr>
@@ -81,6 +81,7 @@ export function DataTable<T>({ columns, data, loading, emptyMessage = 'No data f
             onClick={() => onPageChange(Math.max(0, (page ?? 0) - 1))}
             disabled={!page}
             className="p-1.5 border-2 border-transparent text-sepia hover:text-ink hover:border-dashed hover:border-ink disabled:opacity-25 transition-colors"
+            aria-label="Previous page"
           >
             <ChevronLeft size={18} strokeWidth={1.75} />
           </button>
@@ -92,6 +93,7 @@ export function DataTable<T>({ columns, data, loading, emptyMessage = 'No data f
             onClick={() => onPageChange((page ?? 0) + 1)}
             disabled={(page ?? 0) >= totalPages - 1}
             className="p-1.5 border-2 border-transparent text-sepia hover:text-ink hover:border-dashed hover:border-ink disabled:opacity-25 transition-colors"
+            aria-label="Next page"
           >
             <ChevronRight size={18} strokeWidth={1.75} />
           </button>

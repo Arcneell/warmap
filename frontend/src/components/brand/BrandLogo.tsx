@@ -1,6 +1,6 @@
 /** Official mark — `public/favicon.svg` (served as `/favicon.svg`). */
 export function BrandLogo({
-  className = 'w-12 h-12 sm:w-14 sm:h-14',
+  className = 'w-14 h-14',
   alt = 'Wardrove',
   /** Use on light parchment when multiply would dull the mark */
   noBlend = false,

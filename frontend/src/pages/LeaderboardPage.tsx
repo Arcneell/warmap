@@ -13,11 +13,11 @@ export function LeaderboardPage() {
   const rest = entries?.slice(3) ?? []
 
   return (
-    <div className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-4 py-6 sm:px-6 sm:py-8 space-y-6">
+    <div className="flex-1 min-h-0">
+      <div className="max-w-5xl mx-auto px-8 py-8 space-y-6">
         <header className="text-center space-y-2">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-wax-red tracking-wide">Arena Rankings</h1>
-          <p className="text-sm text-sepia">Names etched in ink — ranked by renown or networks sighted.</p>
+          <h1 className="font-display text-3xl font-bold text-wax-red tracking-wide">Arena Rankings</h1>
+          <p className="text-base text-sepia">Names etched in ink — ranked by renown or networks sighted.</p>
         </header>
 
         <div className="flex justify-center gap-2">
@@ -34,7 +34,7 @@ export function LeaderboardPage() {
         </div>
 
         {top3.length >= 3 && (
-          <div className="hidden sm:flex w-full items-end justify-center gap-10 lg:gap-14 mb-4">
+          <div className="flex w-full items-end justify-center gap-10 mb-4">
             <PodiumCard entry={top3[1]} position={2} />
             <PodiumCard entry={top3[0]} position={1} />
             <PodiumCard entry={top3[2]} position={3} />
@@ -55,9 +55,9 @@ export function LeaderboardPage() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.01 }}
-                  className="ledger-line flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 sm:px-6 sm:py-4"
+                  className="ledger-line grid grid-cols-[56px_40px_minmax(200px,1fr)_120px_220px] items-center gap-x-4 px-6 py-4"
                 >
-                  <span className="font-mono text-sm font-bold tabular-nums text-sepia w-8 text-right shrink-0">
+                  <span className="font-mono text-sm font-bold tabular-nums text-sepia text-right">
                     #{entry.rank}
                   </span>
                   {entry.avatar_url ? (
@@ -67,17 +67,17 @@ export function LeaderboardPage() {
                       {entry.username[0].toUpperCase()}
                     </div>
                   )}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <Link to={`/profile/${entry.user_id}`} className="block truncate font-display text-sm font-semibold text-ink hover:text-wax-red transition-colors">
                       {entry.username}
                     </Link>
                     <p className="font-display text-xs text-sepia">{rankTitle(entry.level).name}</p>
                   </div>
-                  <div className="text-right shrink-0">
+                  <div className="text-right">
                     <p className="font-mono text-sm font-bold text-gold-tarnish">Lvl {entry.level}</p>
                     <p className="font-mono text-xs text-sepia">{formatXP(entry.xp)}</p>
                   </div>
-                  <div className="hidden md:flex gap-4 shrink-0">
+                  <div className="flex gap-4 justify-end">
                     <LedgerMiniStat label="WiFi" value={entry.wifi_discovered} color="text-wifi" />
                     <LedgerMiniStat label="BT" value={entry.bt_discovered} color="text-bt" />
                     <LedgerMiniStat label="Cell" value={entry.cell_discovered} color="text-cell" />
@@ -95,8 +95,8 @@ export function LeaderboardPage() {
 function LedgerMiniStat({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="text-center">
-      <p className={`font-mono text-xs font-semibold ${color} tabular-nums`}>{formatNumber(value)}</p>
-      <p className="text-[9px] uppercase tracking-wider text-sepia">{label}</p>
+      <p className={`font-mono text-sm font-semibold ${color} tabular-nums`}>{formatNumber(value)}</p>
+      <p className="text-xs uppercase tracking-wider text-sepia">{label}</p>
     </div>
   )
 }
