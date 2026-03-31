@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.network import BtNetwork, CellTower, WifiNetwork
 from app.models.transaction import UploadTransaction
 from app.models.user import User
-from app.services.xp import level_from_xp, rank_title, xp_for_level
+from app.services.xp import MAX_LEVEL, level_from_xp, rank_title, xp_for_level
 
 
 async def get_global_stats(db: AsyncSession) -> dict:
@@ -59,6 +59,8 @@ async def get_user_stats(db: AsyncSession, user: User) -> dict:
     level = level_from_xp(user.xp)
     current_level_xp = xp_for_level(level)
     next_level_xp = xp_for_level(level + 1)
+    if level >= MAX_LEVEL:
+        next_level_xp = current_level_xp
 
     return {
         "user_id": user.id,
@@ -72,8 +74,8 @@ async def get_user_stats(db: AsyncSession, user: User) -> dict:
         "total_uploads": total_uploads or 0,
         "xp_current_level": current_level_xp,
         "xp_next_level": next_level_xp,
-        "xp_progress": user.xp - current_level_xp,
-        "xp_needed": next_level_xp - current_level_xp,
+        "xp_progress": 0 if level >= MAX_LEVEL else user.xp - current_level_xp,
+        "xp_needed": 0 if level >= MAX_LEVEL else next_level_xp - current_level_xp,
     }
 
 

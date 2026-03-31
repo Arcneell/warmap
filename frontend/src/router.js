@@ -1,6 +1,6 @@
 /**
  * Simple hash-based SPA router.
- * Routes: #map, #bluetooth, #cell, #leaderboard, #groups, #uploads
+ * Routes: #map, #bluetooth, #cell, #leaderboard, #advanced-stats, #my-stats, #uploads
  */
 
 import { $ } from './utils.js';

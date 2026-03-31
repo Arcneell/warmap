@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
 from app.database import init_db
-from app.routes import auth, upload, networks, stats, profile, groups, export, queue, geocode
+from app.routes import auth, upload, networks, stats, profile, export, queue, geocode
 
 STATIC_DIR = Path(__file__).parent / "static"
 
@@ -45,7 +45,6 @@ app.include_router(upload.router, prefix="/api/v1")
 app.include_router(networks.router, prefix="/api/v1")
 app.include_router(stats.router, prefix="/api/v1")
 app.include_router(profile.router, prefix="/api/v1")
-app.include_router(groups.router, prefix="/api/v1")
 app.include_router(export.router, prefix="/api/v1")
 app.include_router(queue.router, prefix="/api/v1")
 app.include_router(geocode.router, prefix="/api/v1")

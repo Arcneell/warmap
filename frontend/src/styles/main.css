@@ -1081,6 +1081,11 @@ body {
         display: flex;
     }
 
+    .sidebar.open ~ #map .map-search,
+    .sidebar.open ~ #map .map-controls {
+        display: none;
+    }
+
     .hamburger {
         display: block;
     }

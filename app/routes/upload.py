@@ -19,6 +19,7 @@ from app.tasks.worker import parse_redis_url
 
 settings = get_settings()
 router = APIRouter(prefix="/upload", tags=["upload"])
+FORBIDDEN_ARCHIVE_EXTENSIONS = (".zip", ".gz", ".tgz", ".tar.gz")
 
 _arq_pool: ArqRedis | None = None
 
@@ -46,6 +47,13 @@ async def upload_files(
     responses = []
 
     for file in files:
+        lower_name = (file.filename or "").lower()
+        if any(lower_name.endswith(ext) for ext in FORBIDDEN_ARCHIVE_EXTENSIONS):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Archive uploads are disabled for security reasons: {file.filename}",
+            )
+
         content = await file.read()
 
         # Size check

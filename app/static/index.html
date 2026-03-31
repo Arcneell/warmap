@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <script type="module" crossorigin src="/assets/index-BCFqxYqn.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-B94IWD9X.css">
+  <script type="module" crossorigin src="/assets/index-DrnA9dpr.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Sh-OBbqe.css">
 </head>
 <body>
 
@@ -22,7 +22,8 @@
             <button class="nav-tab" id="navBt">Bluetooth</button>
             <button class="nav-tab" id="navCell">Cell Towers</button>
             <button class="nav-tab" id="navLeaderboard">Leaderboard</button>
-            <button class="nav-tab" id="navGroups">Groups</button>
+            <button class="nav-tab" id="navAdvancedStats">Advanced Stats</button>
+            <button class="nav-tab" id="navMyStats">My Stats</button>
             <button class="nav-tab" id="navUploads">Uploads</button>
         </nav>
     </div>
@@ -206,16 +207,24 @@
         </div>
     </div>
 
-    <!-- Groups page -->
-    <div id="groupsPage" class="bt-page" style="display:none;">
+    <!-- Advanced stats page -->
+    <div id="advancedStatsPage" class="bt-page" style="display:none;">
         <div class="bt-header">
-            <h2 style="margin:0;font-size:1.2rem;">Groups</h2>
-            <div style="display:flex;gap:8px;" id="groupActions">
-                <button class="btn" id="createGroupBtn">Create Group</button>
-            </div>
+            <h2 style="margin:0;font-size:1.2rem;">Advanced Stats</h2>
         </div>
-        <div class="bt-table-wrap" id="groupsList"></div>
-        <div id="groupDetail" style="display:none;"></div>
+        <div class="bt-table-wrap" id="advancedStatsContent" style="display:grid;gap:12px;">
+            <div class="card"><div class="card-title">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- My stats page -->
+    <div id="myStatsPage" class="bt-page" style="display:none;">
+        <div class="bt-header">
+            <h2 style="margin:0;font-size:1.2rem;">My Stats</h2>
+        </div>
+        <div class="bt-table-wrap" id="myStatsContent">
+            <div class="card"><div class="card-title">Loading...</div></div>
+        </div>
     </div>
 
     <!-- Cell Towers page -->
@@ -306,9 +315,9 @@
         <h2>Upload Files</h2>
         <div class="drop-zone" id="dropZone">
             <p>Drag & drop your wardriving files here</p>
-            <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">WiGLE CSV, Kismet, KML/KMZ, NetStumbler, .gz, .zip</p>
+            <p style="font-size:0.75rem;color:var(--text-secondary);margin-top:4px;">WiGLE CSV, Kismet, KML/KMZ, NetStumbler</p>
             <button class="btn" id="browseBtn">Browse</button>
-            <input type="file" id="fileInput" accept=".csv,.netxml,.xml,.kml,.kmz,.ns1,.db,.gz,.zip,.tgz" multiple style="display:none">
+            <input type="file" id="fileInput" accept=".csv,.netxml,.xml,.kml,.kmz,.ns1,.db,.plist,.txt,.wiscan" multiple style="display:none">
         </div>
         <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
         <div class="upload-result" id="uploadResult">
