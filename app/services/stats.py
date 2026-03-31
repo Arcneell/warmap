@@ -55,6 +55,10 @@ async def get_user_stats(db: AsyncSession, user: User) -> dict:
             UploadTransaction.user_id == user.id
         )
     )
+    global_rank = (
+        await db.scalar(select(func.count(User.id)).where(User.xp > user.xp))
+        or 0
+    ) + 1
 
     level = level_from_xp(user.xp)
     current_level_xp = xp_for_level(level)
@@ -68,6 +72,7 @@ async def get_user_stats(db: AsyncSession, user: User) -> dict:
         "xp": user.xp,
         "level": level,
         "rank": rank_title(level),
+        "global_rank": global_rank,
         "wifi_discovered": wifi_discovered or 0,
         "bt_discovered": bt_discovered or 0,
         "cell_discovered": cell_discovered or 0,
@@ -82,64 +87,57 @@ async def get_user_stats(db: AsyncSession, user: User) -> dict:
 async def get_leaderboard(
     db: AsyncSession, sort_by: str = "xp", limit: int = 50, offset: int = 0
 ) -> list[dict]:
-    sort_column = {
-        "xp": User.xp,
-        "wifi": func.count(WifiNetwork.id),
-    }.get(sort_by, User.xp)
+    wifi_sub = (
+        select(WifiNetwork.discovered_by.label("user_id"), func.count(WifiNetwork.id).label("wifi_count"))
+        .group_by(WifiNetwork.discovered_by)
+        .subquery()
+    )
+    bt_sub = (
+        select(BtNetwork.discovered_by.label("user_id"), func.count(BtNetwork.id).label("bt_count"))
+        .group_by(BtNetwork.discovered_by)
+        .subquery()
+    )
+    cell_sub = (
+        select(CellTower.discovered_by.label("user_id"), func.count(CellTower.id).label("cell_count"))
+        .group_by(CellTower.discovered_by)
+        .subquery()
+    )
+
+    query = (
+        select(
+            User.id,
+            User.username,
+            User.avatar_url,
+            User.xp,
+            func.coalesce(wifi_sub.c.wifi_count, 0).label("wifi_discovered"),
+            func.coalesce(bt_sub.c.bt_count, 0).label("bt_discovered"),
+            func.coalesce(cell_sub.c.cell_count, 0).label("cell_discovered"),
+        )
+        .outerjoin(wifi_sub, wifi_sub.c.user_id == User.id)
+        .outerjoin(bt_sub, bt_sub.c.user_id == User.id)
+        .outerjoin(cell_sub, cell_sub.c.user_id == User.id)
+    )
 
     if sort_by == "wifi":
-        query = (
-            select(
-                User.id,
-                User.username,
-                User.avatar_url,
-                User.xp,
-                func.count(WifiNetwork.id).label("wifi_discovered"),
-            )
-            .outerjoin(WifiNetwork, WifiNetwork.discovered_by == User.id)
-            .group_by(User.id)
-            .order_by(func.count(WifiNetwork.id).desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        query = query.order_by(func.coalesce(wifi_sub.c.wifi_count, 0).desc(), User.xp.desc())
     else:
-        query = (
-            select(User)
-            .order_by(User.xp.desc())
-            .limit(limit)
-            .offset(offset)
-        )
+        query = query.order_by(User.xp.desc(), func.coalesce(wifi_sub.c.wifi_count, 0).desc())
 
-    result = await db.execute(query)
+    query = query.limit(limit).offset(offset)
+    rows = (await db.execute(query)).all()
+
     entries = []
-
-    if sort_by == "wifi":
-        for i, row in enumerate(result.all()):
-            level = level_from_xp(row.xp)
-            entries.append({
-                "rank": offset + i + 1,
-                "user_id": row.id,
-                "username": row.username,
-                "avatar_url": row.avatar_url,
-                "wifi_discovered": row.wifi_discovered,
-                "bt_discovered": 0,
-                "cell_discovered": 0,
-                "xp": row.xp,
-                "level": level,
-            })
-    else:
-        for i, user in enumerate(result.scalars().all()):
-            level = level_from_xp(user.xp)
-            entries.append({
-                "rank": offset + i + 1,
-                "user_id": user.id,
-                "username": user.username,
-                "avatar_url": user.avatar_url,
-                "wifi_discovered": 0,
-                "bt_discovered": 0,
-                "cell_discovered": 0,
-                "xp": user.xp,
-                "level": level,
-            })
-
+    for i, row in enumerate(rows):
+        level = level_from_xp(row.xp)
+        entries.append({
+            "rank": offset + i + 1,
+            "user_id": row.id,
+            "username": row.username,
+            "avatar_url": row.avatar_url,
+            "wifi_discovered": row.wifi_discovered,
+            "bt_discovered": row.bt_discovered,
+            "cell_discovered": row.cell_discovered,
+            "xp": row.xp,
+            "level": level,
+        })
     return entries

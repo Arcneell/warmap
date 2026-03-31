@@ -1,12 +1,31 @@
 import { $ } from '../utils.js';
 
+const PAGE_SIZE = 100;
+let currentOffset = 0;
+
 export function initCell() {
     let timeout;
     $('cellSearch').addEventListener('input', () => {
         clearTimeout(timeout);
-        timeout = setTimeout(loadCellTowers, 400);
+        timeout = setTimeout(() => {
+            currentOffset = 0;
+            loadCellTowers();
+        }, 400);
     });
-    $('cellRadioFilter').addEventListener('change', loadCellTowers);
+    $('cellRadioFilter').addEventListener('change', () => {
+        currentOffset = 0;
+        loadCellTowers();
+    });
+    const prevBtn = $('cellPrev');
+    const nextBtn = $('cellNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadCellTowers();
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        currentOffset += PAGE_SIZE;
+        loadCellTowers();
+    });
 }
 
 export async function loadCellTowers() {
@@ -14,12 +33,14 @@ export async function loadCellTowers() {
         const radio = $('cellRadioFilter').value;
         const params = new URLSearchParams();
         if (radio) params.set('radio', radio);
-        params.set('limit', '500');
+        params.set('limit', String(PAGE_SIZE));
+        params.set('offset', String(currentOffset));
 
         const res = await fetch('/api/v1/networks/cell?' + params);
         const data = await res.json();
         const towers = data.results || [];
-        $('cellTotal').textContent = towers.length;
+        const total = data.total || 0;
+        $('cellTotal').textContent = total;
 
         const tbody = $('cellTableBody');
         if (towers.length === 0) {
@@ -39,6 +60,12 @@ export async function loadCellTowers() {
                 <td><span class="bt-date">${t.first_seen || '--'}</span></td>
             </tr>`;
         }).join('');
+        const pageInfo = $('cellPageInfo');
+        const prevBtn = $('cellPrev');
+        const nextBtn = $('cellNext');
+        if (pageInfo) pageInfo.textContent = `Page ${Math.floor(currentOffset / PAGE_SIZE) + 1}`;
+        if (prevBtn) prevBtn.disabled = currentOffset === 0;
+        if (nextBtn) nextBtn.disabled = currentOffset + PAGE_SIZE >= total;
     } catch (e) {
         console.error('Failed to load cell towers:', e);
     }

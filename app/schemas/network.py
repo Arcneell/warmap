@@ -43,6 +43,7 @@ class BtSearchParams(BaseModel):
     lat_max: float | None = None
     lon_min: float | None = None
     lon_max: float | None = None
+    offset: int = 0
     cursor: str | None = None
     limit: int = 100
 
@@ -72,6 +73,7 @@ class CellSearchParams(BaseModel):
     lat_max: float | None = None
     lon_min: float | None = None
     lon_max: float | None = None
+    offset: int = 0
     cursor: str | None = None
     limit: int = 100
 

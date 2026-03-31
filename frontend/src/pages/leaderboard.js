@@ -1,13 +1,26 @@
 import { $, escapeHtml } from '../utils.js';
 
+const PAGE_SIZE = 50;
+let currentOffset = 0;
+
 export function initLeaderboard() {
     $('lbSortBy').addEventListener('change', loadLeaderboard);
+    const prevBtn = $('lbPrev');
+    const nextBtn = $('lbNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadLeaderboard();
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        currentOffset += PAGE_SIZE;
+        loadLeaderboard();
+    });
 }
 
 export async function loadLeaderboard() {
     try {
         const sortBy = $('lbSortBy').value;
-        const res = await fetch(`/api/v1/stats/leaderboard?sort_by=${sortBy}&limit=50`);
+        const res = await fetch(`/api/v1/stats/leaderboard?sort_by=${sortBy}&limit=${PAGE_SIZE}&offset=${currentOffset}`);
         const data = await res.json();
         const tbody = $('lbTableBody');
 
@@ -20,7 +33,8 @@ export async function loadLeaderboard() {
             const avatar = u.avatar_url
                 ? `<img src="${u.avatar_url}" style="width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:6px;">`
                 : '';
-            return `<tr>
+            const topClass = u.rank === 1 ? 'lb-top1' : (u.rank === 2 ? 'lb-top2' : (u.rank === 3 ? 'lb-top3' : ''));
+            return `<tr class="${topClass}">
                 <td><strong>${u.rank}</strong></td>
                 <td>${avatar}${escapeHtml(u.username)}</td>
                 <td>Lvl ${u.level}</td>
@@ -30,6 +44,12 @@ export async function loadLeaderboard() {
                 <td>${(u.cell_discovered || 0).toLocaleString()}</td>
             </tr>`;
         }).join('');
+        const pageInfo = $('lbPageInfo');
+        const prevBtn = $('lbPrev');
+        const nextBtn = $('lbNext');
+        if (pageInfo) pageInfo.textContent = `Page ${Math.floor(currentOffset / PAGE_SIZE) + 1}`;
+        if (prevBtn) prevBtn.disabled = currentOffset === 0;
+        if (nextBtn) nextBtn.disabled = !data || data.length < PAGE_SIZE;
     } catch (e) {
         console.error('Failed to load leaderboard:', e);
     }

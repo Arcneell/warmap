@@ -1,10 +1,26 @@
 import { $, escapeHtml } from '../utils.js';
 
+const PAGE_SIZE = 100;
+let currentOffset = 0;
+
 export function initBluetooth() {
     let timeout;
     $('btSearch').addEventListener('input', () => {
         clearTimeout(timeout);
-        timeout = setTimeout(loadBluetooth, 400);
+        timeout = setTimeout(() => {
+            currentOffset = 0;
+            loadBluetooth();
+        }, 400);
+    });
+    const prevBtn = $('btPrev');
+    const nextBtn = $('btNext');
+    if (prevBtn) prevBtn.addEventListener('click', () => {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadBluetooth();
+    });
+    if (nextBtn) nextBtn.addEventListener('click', () => {
+        currentOffset += PAGE_SIZE;
+        loadBluetooth();
     });
 }
 
@@ -13,12 +29,15 @@ export async function loadBluetooth() {
         const search = $('btSearch').value.trim();
         const params = new URLSearchParams();
         if (search) params.set('name', search);
+        params.set('limit', String(PAGE_SIZE));
+        params.set('offset', String(currentOffset));
 
         const res = await fetch('/api/v1/networks/bt?' + params);
         const data = await res.json();
         const devices = data.results || [];
+        const total = data.total || 0;
 
-        $('btTotal').textContent = devices.length;
+        $('btTotal').textContent = total;
 
         const tbody = $('btTableBody');
         if (devices.length === 0) {
@@ -41,6 +60,12 @@ export async function loadBluetooth() {
                 <td><span class="bt-date">${d.last_seen || '--'}</span></td>
             </tr>`;
         }).join('');
+        const pageInfo = $('btPageInfo');
+        const prevBtn = $('btPrev');
+        const nextBtn = $('btNext');
+        if (pageInfo) pageInfo.textContent = `Page ${Math.floor(currentOffset / PAGE_SIZE) + 1}`;
+        if (prevBtn) prevBtn.disabled = currentOffset === 0;
+        if (nextBtn) nextBtn.disabled = currentOffset + PAGE_SIZE >= total;
     } catch (e) {
         console.error('Failed to load bluetooth:', e);
     }

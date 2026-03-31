@@ -16,6 +16,7 @@ export async function loadMyStats() {
                 <div class="card-title">Profile</div>
                 <div style="font-size:1.1rem;font-weight:700">${escapeHtml(s.username || '--')}</div>
                 <div style="color:var(--text-secondary);margin-top:4px;">Level ${s.level} - ${escapeHtml(s.rank || '--')}</div>
+                <div style="margin-top:6px;">Global rank: <strong>#${(s.global_rank || 0).toLocaleString()}</strong></div>
             </div>
             <div class="card">
                 <div class="card-title">Progression</div>

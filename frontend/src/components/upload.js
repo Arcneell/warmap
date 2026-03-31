@@ -91,6 +91,7 @@ export function initUpload() {
             const res = await authFetch('/api/v1/upload', { method: 'POST', body: form });
 
             if (!res.ok) throw new Error('Upload failed');
+            const txs = await res.json();
 
             progressFill.style.width = '100%';
             setTimeout(() => {
@@ -99,6 +100,7 @@ export function initUpload() {
                 navigate('#uploads');
             }, 250);
             showToast('Upload envoye, traitement en cours', 'success');
+            monitorTransactions(txs);
             loadStats();
             loadGeoJSON(false);
             loadProfile();
@@ -109,5 +111,41 @@ export function initUpload() {
         } finally {
             setTimeout(() => setUploadBusy(false), 1200);
         }
+    }
+
+    async function monitorTransactions(txs) {
+        if (!Array.isArray(txs) || txs.length === 0) return;
+        const ids = txs.map((t) => t.transaction_id).filter(Boolean);
+        let newCount = 0;
+        let updatedCount = 0;
+        let xpCount = 0;
+        let errorCount = 0;
+        for (const id of ids) {
+            for (let i = 0; i < 180; i++) {
+                await new Promise((r) => setTimeout(r, 1000));
+                try {
+                    const r = await authFetch(`/api/v1/upload/status/${id}`);
+                    if (!r.ok) break;
+                    const data = await r.json();
+                    const st = (data.status || '').toLowerCase();
+                    if (st === 'done' || st === 'error') {
+                        if (st === 'error') {
+                            errorCount += 1;
+                        } else {
+                            newCount += data.new_networks || 0;
+                            updatedCount += data.updated_networks || 0;
+                            xpCount += data.xp_earned || 0;
+                        }
+                        break;
+                    }
+                } catch (e) {
+                    break;
+                }
+            }
+        }
+        if (errorCount > 0) {
+            showToast(`${errorCount} upload(s) en erreur`, 'error');
+        }
+        showToast(`Upload fini: ${newCount} nouveaux, ${updatedCount} updates, +${xpCount} XP`, 'success');
     }
 }

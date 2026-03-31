@@ -2,6 +2,8 @@ import { authFetch } from '../api.js';
 import { $, escapeHtml } from '../utils.js';
 
 let refreshTimer = null;
+const PAGE_SIZE = 50;
+let currentOffset = 0;
 
 function statusBadge(status) {
     const s = (status || '').toLowerCase();
@@ -22,7 +24,7 @@ export async function loadUploads() {
     const headerBadge = $('uploadStatusBadge');
     if (!tbody) return;
     try {
-        const res = await authFetch('/api/v1/upload?limit=100');
+        const res = await authFetch(`/api/v1/upload?limit=${PAGE_SIZE}&offset=${currentOffset}`);
         if (!res.ok) {
             tbody.innerHTML = '<tr><td colspan="8" class="bt-empty">Login required</td></tr>';
             return;
@@ -50,6 +52,12 @@ export async function loadUploads() {
                 <td>${escapeHtml(r.status_message || '--')}</td>
             </tr>`;
         }).join('');
+        const pageInfo = $('uploadsPageInfo');
+        const prevBtn = $('uploadsPrev');
+        const nextBtn = $('uploadsNext');
+        if (pageInfo) pageInfo.textContent = `Page ${Math.floor(currentOffset / PAGE_SIZE) + 1}`;
+        if (prevBtn) prevBtn.disabled = currentOffset === 0;
+        if (nextBtn) nextBtn.disabled = rows.length < PAGE_SIZE;
     } catch (e) {
         console.error('Failed to load uploads history:', e);
         tbody.innerHTML = '<tr><td colspan="8" class="bt-empty">Failed to load history</td></tr>';
@@ -60,6 +68,16 @@ export function onUploadsEnter() {
     loadUploads();
     const refreshBtn = $('refreshUploadsBtn');
     if (refreshBtn) refreshBtn.onclick = loadUploads;
+    const prevBtn = $('uploadsPrev');
+    const nextBtn = $('uploadsNext');
+    if (prevBtn) prevBtn.onclick = () => {
+        currentOffset = Math.max(0, currentOffset - PAGE_SIZE);
+        loadUploads();
+    };
+    if (nextBtn) nextBtn.onclick = () => {
+        currentOffset += PAGE_SIZE;
+        loadUploads();
+    };
     if (refreshTimer) clearInterval(refreshTimer);
     refreshTimer = setInterval(loadUploads, 3000);
 }

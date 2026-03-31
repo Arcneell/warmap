@@ -17,6 +17,7 @@ class UserStats(BaseModel):
     xp: int
     level: int
     rank: str
+    global_rank: int
     wifi_discovered: int
     bt_discovered: int
     cell_discovered: int

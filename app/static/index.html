@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <script type="module" crossorigin src="/assets/index-BbwAohFO.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-93fl_Exv.css">
+  <script type="module" crossorigin src="/assets/index-Bp7meJoQ.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-A50pU7dE.css">
 </head>
 <body>
 
@@ -34,7 +34,6 @@
             <span class="header-level" id="headerLevel">Lvl 1</span>
             <span class="header-pseudo" id="headerPseudo"></span>
         </div>
-        <button class="btn btn-secondary" id="exportBtn">Export CSV</button>
         <button class="btn" id="uploadBtn"><span class="btn-icon">&#8686;</span>Upload</button>
         <button class="btn btn-secondary" id="loginBtn">Login</button>
         <button class="btn btn-secondary" id="logoutBtn" style="display:none;">Logout</button>
@@ -154,7 +153,12 @@
                     <div class="bt-stat-label">Bluetooth devices</div>
                 </div>
             </div>
-            <input type="text" class="search-input bt-search" id="btSearch" placeholder="Search by name or MAC...">
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" class="search-input bt-search" id="btSearch" placeholder="Search by name or MAC...">
+                <button class="btn btn-secondary" id="btPrev">Prev</button>
+                <span id="btPageInfo" style="font-size:0.8rem;color:var(--text-secondary);min-width:62px;text-align:center;">Page 1</span>
+                <button class="btn btn-secondary" id="btNext">Next</button>
+            </div>
         </div>
         <div class="bt-table-wrap">
             <table class="bt-table">
@@ -185,6 +189,9 @@
                     <option value="xp">Sort by XP</option>
                     <option value="wifi">Sort by WiFi</option>
                 </select>
+                <button class="btn btn-secondary" id="lbPrev">Prev</button>
+                <span id="lbPageInfo" style="font-size:0.8rem;color:var(--text-secondary);min-width:62px;text-align:center;">Page 1</span>
+                <button class="btn btn-secondary" id="lbNext">Next</button>
             </div>
         </div>
         <div class="bt-table-wrap">
@@ -246,6 +253,9 @@
                     <option value="NR">5G NR</option>
                 </select>
                 <input type="text" class="search-input bt-search" id="cellSearch" placeholder="Search by MCC, MNC, CID...">
+                <button class="btn btn-secondary" id="cellPrev">Prev</button>
+                <span id="cellPageInfo" style="font-size:0.8rem;color:var(--text-secondary);min-width:62px;text-align:center;">Page 1</span>
+                <button class="btn btn-secondary" id="cellNext">Next</button>
             </div>
         </div>
         <div class="bt-table-wrap">
@@ -274,6 +284,9 @@
         <div class="bt-header">
             <h2 style="margin:0;font-size:1.2rem;">Upload History</h2>
             <button class="btn btn-secondary" id="refreshUploadsBtn">Refresh</button>
+            <button class="btn btn-secondary" id="uploadsPrev">Prev</button>
+            <span id="uploadsPageInfo" style="font-size:0.8rem;color:var(--text-secondary);min-width:62px;text-align:center;">Page 1</span>
+            <button class="btn btn-secondary" id="uploadsNext">Next</button>
         </div>
         <div class="bt-table-wrap">
             <table class="bt-table">

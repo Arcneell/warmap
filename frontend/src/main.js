@@ -76,11 +76,6 @@ $('navAdvancedStats').addEventListener('click', () => navigate('#advanced-stats'
 $('navMyStats').addEventListener('click', () => navigate('#my-stats'));
 $('navUploads').addEventListener('click', () => navigate('#uploads'));
 
-// Export button
-$('exportBtn').addEventListener('click', () => {
-    window.location.href = '/api/v1/export/wigle-csv';
-});
-
 // Hamburger menu
 $('hamburgerBtn').addEventListener('click', () => {
     $('sidebar').classList.toggle('open');

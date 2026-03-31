@@ -893,6 +893,21 @@ body {
     background: var(--bg-primary);
 }
 
+.bt-table tbody tr.lb-top1 {
+    box-shadow: inset 4px 0 0 #d4af37;
+    background: linear-gradient(90deg, rgba(212, 175, 55, 0.14), transparent 60%);
+}
+
+.bt-table tbody tr.lb-top2 {
+    box-shadow: inset 4px 0 0 #c0c0c0;
+    background: linear-gradient(90deg, rgba(192, 192, 192, 0.12), transparent 60%);
+}
+
+.bt-table tbody tr.lb-top3 {
+    box-shadow: inset 4px 0 0 #cd7f32;
+    background: linear-gradient(90deg, rgba(205, 127, 50, 0.14), transparent 60%);
+}
+
 .bt-name {
     font-weight: 600;
     color: var(--text-primary);

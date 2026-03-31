@@ -41,6 +41,9 @@ async def process_observations(
         if obs.latitude and obs.longitude:
             gps_points += 1
 
+        seen_at = _normalize_seen_at(obs.seen_at)
+        obs.seen_at = seen_at
+
         if obs.network_type == "wifi":
             wifi_count += 1
             result, network_id = await _process_wifi(db, obs, transaction, user)
@@ -343,3 +346,11 @@ async def _process_cell(
 
     tower.seen_count += 1
     return ("updated" if changed else "skipped"), tower.id
+
+
+def _normalize_seen_at(value: datetime | None) -> datetime:
+    if value is None:
+        return datetime.now(timezone.utc)
+    if value.tzinfo is None:
+        return value.replace(tzinfo=timezone.utc)
+    return value.astimezone(timezone.utc)

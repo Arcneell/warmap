@@ -1,7 +1,7 @@
 import csv
 import io
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.parsers.base import BaseParser, NetworkObservation
 
@@ -28,7 +28,10 @@ def _parse_datetime(dt_str: str) -> datetime | None:
         return None
     for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S%z"):
         try:
-            return datetime.strptime(dt_str, fmt)
+            parsed = datetime.strptime(dt_str, fmt)
+            if parsed.tzinfo is None:
+                return parsed.replace(tzinfo=timezone.utc)
+            return parsed.astimezone(timezone.utc)
         except ValueError:
             continue
     return None

@@ -78,7 +78,7 @@ async def search_bt(
         if cursor_data:
             query = query.where(BtNetwork.id < cursor_data["last_id"])
 
-    query = query.order_by(BtNetwork.id.desc()).limit(params.limit + 1)
+    query = query.order_by(BtNetwork.id.desc()).offset(params.offset).limit(params.limit + 1)
 
     result = await db.execute(query)
     networks = list(result.scalars().all())
@@ -120,7 +120,7 @@ async def search_cell(
         if cursor_data:
             query = query.where(CellTower.id < cursor_data["last_id"])
 
-    query = query.order_by(CellTower.id.desc()).limit(params.limit + 1)
+    query = query.order_by(CellTower.id.desc()).offset(params.offset).limit(params.limit + 1)
 
     result = await db.execute(query)
     towers = list(result.scalars().all())

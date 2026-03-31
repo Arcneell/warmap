@@ -176,6 +176,7 @@ async def list_bt(
     lat_max: float | None = Query(None),
     lon_min: float | None = Query(None),
     lon_max: float | None = Query(None),
+    offset: int = Query(0, ge=0),
     cursor: str | None = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
@@ -183,12 +184,29 @@ async def list_bt(
     params = BtSearchParams(
         name=name, mac=mac, device_type=device_type,
         lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max,
-        cursor=cursor, limit=limit,
+        offset=offset, cursor=cursor, limit=limit,
     )
     networks, next_cursor = await search_bt(db, params)
+    total_query = select(func.count(BtNetwork.id))
+    if name:
+        total_query = total_query.where(BtNetwork.name.ilike(f"%{name}%"))
+    if mac:
+        total_query = total_query.where(BtNetwork.mac == mac.upper())
+    if device_type:
+        total_query = total_query.where(BtNetwork.device_type == device_type.upper())
+    if lat_min is not None:
+        total_query = total_query.where(BtNetwork.latitude >= lat_min)
+    if lat_max is not None:
+        total_query = total_query.where(BtNetwork.latitude <= lat_max)
+    if lon_min is not None:
+        total_query = total_query.where(BtNetwork.longitude >= lon_min)
+    if lon_max is not None:
+        total_query = total_query.where(BtNetwork.longitude <= lon_max)
+    total = await db.scalar(total_query) or 0
     return PaginatedResponse(
         results=[BtNetworkResponse.model_validate(n) for n in networks],
         next_cursor=next_cursor,
+        total=total,
     )
 
 
@@ -269,6 +287,7 @@ async def list_cell(
     lat_max: float | None = Query(None),
     lon_min: float | None = Query(None),
     lon_max: float | None = Query(None),
+    offset: int = Query(0, ge=0),
     cursor: str | None = Query(None),
     limit: int = Query(100, ge=1, le=1000),
     db: AsyncSession = Depends(get_db),
@@ -276,12 +295,33 @@ async def list_cell(
     params = CellSearchParams(
         radio=radio, mcc=mcc, mnc=mnc, lac=lac, cid=cid,
         lat_min=lat_min, lat_max=lat_max, lon_min=lon_min, lon_max=lon_max,
-        cursor=cursor, limit=limit,
+        offset=offset, cursor=cursor, limit=limit,
     )
     towers, next_cursor = await search_cell(db, params)
+    total_query = select(func.count(CellTower.id))
+    if radio:
+        total_query = total_query.where(CellTower.radio == radio.upper())
+    if mcc is not None:
+        total_query = total_query.where(CellTower.mcc == mcc)
+    if mnc is not None:
+        total_query = total_query.where(CellTower.mnc == mnc)
+    if lac is not None:
+        total_query = total_query.where(CellTower.lac == lac)
+    if cid is not None:
+        total_query = total_query.where(CellTower.cid == cid)
+    if lat_min is not None:
+        total_query = total_query.where(CellTower.latitude >= lat_min)
+    if lat_max is not None:
+        total_query = total_query.where(CellTower.latitude <= lat_max)
+    if lon_min is not None:
+        total_query = total_query.where(CellTower.longitude >= lon_min)
+    if lon_max is not None:
+        total_query = total_query.where(CellTower.longitude <= lon_max)
+    total = await db.scalar(total_query) or 0
     return PaginatedResponse(
         results=[CellTowerResponse.model_validate(t) for t in towers],
         next_cursor=next_cursor,
+        total=total,
     )
 
 
