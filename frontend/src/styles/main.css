@@ -241,14 +241,16 @@ body {
 }
 
 .enc-dot {
-    width: 10px;
-    height: 10px;
-    min-width: 10px;
-    min-height: 10px;
-    aspect-ratio: 1 / 1;
-    flex-shrink: 0;
-    border-radius: 50%;
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    min-height: 10px !important;
+    max-width: 10px;
+    max-height: 10px;
+    flex: 0 0 10px;
+    border-radius: 999px !important;
     display: inline-block;
+    vertical-align: middle;
 }
 
 .search-input {
@@ -297,15 +299,16 @@ body {
 
 .map-search {
     position: absolute;
-    top: 12px;
-    left: 50%;
-    transform: translateX(-50%);
+    bottom: 14px;
+    right: 14px;
+    left: auto;
+    transform: none;
     z-index: 1000;
-    max-width: calc(100% - 24px);
+    width: min(360px, calc(100% - 28px));
 }
 
 .map-search-input {
-    width: 320px;
+    width: 100%;
     max-width: 100%;
     padding: 8px 14px;
     border: 1px solid var(--border);
@@ -1098,10 +1101,12 @@ body {
     }
 
     .map-search {
-        top: 12px;
+        bottom: 10px;
+        right: 8px;
         left: 8px;
         right: 8px;
         transform: none;
+        width: auto;
     }
 
     .map-search-input {
@@ -1124,7 +1129,7 @@ body {
     }
 
     .map-search {
-        top: 8px;
+        bottom: 8px;
     }
 
     .map-search-input {
