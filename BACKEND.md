@@ -1,222 +1,179 @@
 # Backend Specifications
 
-## Database (PostgreSQL + PostGIS)
+## Database (PostgreSQL 16 + PostGIS)
 
-### Core Tables
+### Tables
 
-#### `users`
-```sql
-id SERIAL PRIMARY KEY,
-username VARCHAR(64) UNIQUE NOT NULL,
-email VARCHAR(255) UNIQUE,
-xp BIGINT DEFAULT 0,
-avatar_url TEXT,
-oauth_provider VARCHAR(32),
-oauth_id VARCHAR(128),
-is_admin BOOLEAN DEFAULT FALSE,
-is_active BOOLEAN DEFAULT TRUE,
-created_at TIMESTAMPTZ DEFAULT NOW(),
-last_login TIMESTAMPTZ
-```
+| Table | Purpose | Key Columns |
+|-------|---------|-------------|
+| `users` | Player accounts | id, username, email, avatar_url, xp, oauth_provider, oauth_id, is_admin, is_active, created_at |
+| `api_tokens` | Programmatic access | id, user_id, token_hash, name, expires_at, revoked, created_at |
+| `wifi_networks` | WiFi access points | id, bssid (unique), ssid, encryption, channel, frequency, rssi, lat, lon, discovered_by, first_seen, last_seen, seen_count |
+| `wifi_observations` | Per-scan observations | id, network_id, transaction_id, user_id, rssi, lat, lon, seen_at |
+| `bt_networks` | Bluetooth devices | id, mac (unique), name, device_type (BT/BLE), rssi, lat, lon, discovered_by |
+| `cell_towers` | Cell towers | id, radio, mcc, mnc, lac, cid (composite unique), rssi, lat, lon, discovered_by |
+| `upload_transactions` | Job tracking | id, user_id, filename, file_size, status, wifi/bt/cell counts, xp_earned, timestamps |
+| `badge_definitions` | Badge catalog (61 badges) | id, slug, name, description, icon_svg, category, tier, criteria_type, criteria_value |
+| `user_badges` | Earned badges | user_id, badge_id, earned_at |
+| `groups` | Guilds/teams | id, name, description, created_by |
+| `group_members` | Guild membership | group_id, user_id, role (admin/member) |
+| `monthly_stats` | Aggregated stats | id, user_id, month, wifi/bt/cell discovered, xp_earned, rank |
 
-#### `wifi_networks`
-```sql
-id SERIAL PRIMARY KEY,
-bssid VARCHAR(17) UNIQUE NOT NULL,    -- MAC address (dedup key)
-ssid TEXT DEFAULT '',
-encryption VARCHAR(16) DEFAULT 'Unknown',  -- WPA3, WPA2, WPA, WEP, Open, Unknown
-channel INTEGER DEFAULT 0,
-frequency INTEGER DEFAULT 0,
-rssi INTEGER DEFAULT -100,            -- best observed signal (dBm)
-latitude DOUBLE PRECISION,
-longitude DOUBLE PRECISION,
-altitude DOUBLE PRECISION,
-accuracy DOUBLE PRECISION,
-first_seen TIMESTAMPTZ NOT NULL,
-last_seen TIMESTAMPTZ NOT NULL,
-seen_count INTEGER DEFAULT 1,
-discovered_by INTEGER REFERENCES users(id),
-last_updated_by INTEGER REFERENCES users(id)
-```
+## API Endpoints (all under `/api/v1`)
 
-#### `wifi_observations`
-```sql
-id BIGSERIAL PRIMARY KEY,
-network_id INTEGER REFERENCES wifi_networks(id),
-transaction_id INTEGER REFERENCES upload_transactions(id),
-user_id INTEGER REFERENCES users(id),
-rssi INTEGER,
-latitude DOUBLE PRECISION,
-longitude DOUBLE PRECISION,
-altitude DOUBLE PRECISION,
-accuracy DOUBLE PRECISION,
-seen_at TIMESTAMPTZ
-```
-Used for trilateration: multiple observations of the same network allow RSSI-weighted centroid positioning.
+### Auth (`/auth`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/login/{provider}` | No | Returns OAuth redirect URL |
+| GET | `/callback/{provider}` | No | OAuth callback → sets refresh cookie → redirects with auth_code |
+| POST | `/exchange` | No | Exchange one-time auth_code for access token |
+| POST | `/refresh` | Cookie | Refresh access token |
+| POST | `/logout` | No | Clear refresh cookie |
+| GET | `/me` | JWT | Current user info with level/rank |
+| GET | `/tokens` | JWT | List API tokens |
+| POST | `/tokens` | JWT | Create API token (returns raw token once) |
+| DELETE | `/tokens/{id}` | JWT | Revoke token |
 
-#### `bt_networks`
-```sql
-id SERIAL PRIMARY KEY,
-mac VARCHAR(17) UNIQUE NOT NULL,
-name TEXT DEFAULT '',
-device_type VARCHAR(4) DEFAULT 'BT',  -- BT or BLE
-rssi INTEGER DEFAULT -100,
-latitude DOUBLE PRECISION,
-longitude DOUBLE PRECISION,
-first_seen TIMESTAMPTZ,
-last_seen TIMESTAMPTZ,
-seen_count INTEGER DEFAULT 1,
-discovered_by INTEGER REFERENCES users(id)
-```
+### Upload (`/upload`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/` | JWT | Upload files → Redis → ARQ queue |
+| GET | `/` | JWT | Upload history with queue positions |
+| GET | `/status/{id}` | JWT | Transaction status (ownership verified) |
+| GET | `/status/{id}/stream` | JWT | SSE real-time status updates |
 
-#### `cell_towers`
-```sql
-id SERIAL PRIMARY KEY,
-radio VARCHAR(8),           -- GSM, LTE, WCDMA, CDMA, NR
-mcc INTEGER, mnc INTEGER, lac INTEGER, cid INTEGER,
-rssi INTEGER DEFAULT -100,
-latitude DOUBLE PRECISION,
-longitude DOUBLE PRECISION,
-first_seen TIMESTAMPTZ,
-last_seen TIMESTAMPTZ,
-seen_count INTEGER DEFAULT 1,
-discovered_by INTEGER REFERENCES users(id),
-UNIQUE (radio, mcc, mnc, lac, cid)
-```
+### Networks (`/networks`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/wifi` | Optional | List WiFi networks (cursor pagination) |
+| GET | `/wifi/geojson` | Optional | Viewport-based GeoJSON |
+| GET | `/wifi/count` | Optional | Count in bounding box |
+| GET | `/wifi/{bssid}` | Optional | Single network detail |
+| GET | `/bt` | Optional | List BT devices (pagination) |
+| GET | `/bt/geojson` | Optional | BT GeoJSON |
+| GET | `/cell` | Optional | List cell towers (pagination) |
+| GET | `/cell/geojson` | Optional | Cell GeoJSON |
 
-#### `upload_transactions`
-```sql
-id SERIAL PRIMARY KEY,
-user_id INTEGER REFERENCES users(id),
-filename TEXT NOT NULL,
-file_size INTEGER,
-file_format VARCHAR(32),
-status VARCHAR(16) DEFAULT 'pending',  -- pending -> parsing -> trilaterating -> done | error
-status_message TEXT,
-wifi_count INTEGER DEFAULT 0,
-bt_count INTEGER DEFAULT 0,
-ble_count INTEGER DEFAULT 0,
-cell_count INTEGER DEFAULT 0,
-gps_points INTEGER DEFAULT 0,
-new_networks INTEGER DEFAULT 0,
-updated_networks INTEGER DEFAULT 0,
-skipped_networks INTEGER DEFAULT 0,
-xp_earned INTEGER DEFAULT 0,
-uploaded_at TIMESTAMPTZ DEFAULT NOW(),
-completed_at TIMESTAMPTZ
-```
+### Stats (`/stats`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | No | Global totals, encryption distribution, top SSIDs |
+| GET | `/leaderboard` | No | Player rankings (sort by xp/wifi) |
+| GET | `/channels` | No | WiFi channel distribution |
+| GET | `/encryption` | No | Encryption type counts |
+| GET | `/manufacturers` | No | Top OUI manufacturers |
+| GET | `/countries` | No | Country stats by MCC |
+| GET | `/top-ssids` | No | Most common SSIDs |
 
-#### `badge_definitions`
-```sql
-id SERIAL PRIMARY KEY,
-slug VARCHAR(64) UNIQUE NOT NULL,
-name VARCHAR(128) NOT NULL,
-description TEXT,
-icon_emoji VARCHAR(8),
-category VARCHAR(32),       -- wifi, bluetooth, cell, upload, xp, level, special
-tier INTEGER DEFAULT 1,     -- visual rarity (1=common, 8=mythic)
-criteria_type VARCHAR(32),  -- wifi_count, bt_count, upload_count, xp, level, wep_count, etc.
-criteria_value INTEGER
-```
+### Profile (`/profile`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | JWT | My profile with XP progress |
+| PUT | `/` | JWT | Update username |
+| GET | `/u/{username}` | No | Public profile by username |
+| GET | `/{id}` | No | Public profile by ID |
+| GET | `/{id}/badges` | No | All badges (earned + unearned) |
+| GET | `/{id}/badge.svg` | No | Dynamic SVG badge card |
 
-#### `user_badges`
-```sql
-user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
-badge_id INTEGER REFERENCES badge_definitions(id),
-earned_at TIMESTAMPTZ DEFAULT NOW(),
-PRIMARY KEY (user_id, badge_id)
-```
+### Groups (`/groups`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/` | No | List all groups |
+| POST | `/` | JWT | Create group |
+| GET | `/{id}` | No | Group detail with members |
+| POST | `/{id}/join` | JWT | Join group |
+| DELETE | `/{id}/leave` | JWT | Leave group |
+| GET | `/{id}/leaderboard` | No | Group rankings |
 
-#### `groups`, `group_members`
-Team system with admin/member roles and group-specific leaderboards.
+### Export (`/export`)
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/wigle-csv` | Optional | WiGLE CSV export (streaming) |
+| GET | `/kml` | Optional | KML export |
+| GET | `/kml/{id}` | Optional | KML for single upload |
+| GET | `/geojson` | Optional | GeoJSON with filters |
 
-#### `monthly_stats`
-Aggregated per-user monthly stats with rank calculation.
-
-## File Parsing
-
-### Supported Formats
-
-| Format | Extension | Detection |
-|--------|-----------|-----------|
-| WiGLE CSV v1.6 | `.wigle.csv`, `.csv` | Header "WigleWifi" or MAC/SSID columns |
-| Kismet NetXML | `.netxml`, `.kismet.netxml` | XML with `wireless-network` |
-| Kismet CSV | `.kismet.csv` | Semicolon-delimited with Network/BSSID |
-| KML/KMZ | `.kml`, `.kmz` | XML with `kml` namespace |
-| NetStumbler | `.ns1` | Binary NS1 format |
-| NetStumbler Text | `.wiscan`, `.txt` | Tab-separated with MAC addresses |
-| Consolidated.db | `.db` | SQLite with wifilocation/celllocation tables |
-| DStumbler | -- | Key:Value format with BSSID/SSID |
-| MacStumbler | `.plist` | XML or binary plist |
-
-Detection order: extension map -> content inspection -> extension fallback.
-
-### Encryption Classification (AuthMode)
-
-1. Contains `WPA3` or `SAE` -> `WPA3`
-2. Contains `WPA2` or `RSN` -> `WPA2`
-3. Contains `WPA` -> `WPA`
-4. Contains `WEP` -> `WEP`
-5. Contains `[` but none of above -> `Open`
-6. Empty or unparseable -> `Unknown`
-
-### Dedup Logic
-
-Per observation:
-1. Lookup network by BSSID (bulk pre-fetch per batch)
-2. If new -> INSERT network + observation, count as "new"
-3. If exists -> UPDATE metadata if better (RSSI, last_seen, SSID, encryption), INSERT observation, count as "updated" or "skipped"
-4. Skip if lat/lon = 0,0 (no GPS fix)
-
-### Processing Pipeline
+## Processing Pipeline
 
 ```
-File in Redis -> Parse (thread pool) -> Bulk process observations -> Trilaterate -> XP + Badges -> Done
+POST /upload
+  → Validate (size, format, no archives)
+  → Store file in Redis (binary, 4h TTL)
+  → Create UploadTransaction (status: pending)
+  → Enqueue ARQ job (after DB commit)
+
+Worker picks up job:
+  → Fetch file from Redis
+  → Detect format (extension → content inspection → fallback)
+  → Parse observations (thread pool for CPU work)
+  → Batch dedup (2000 obs/batch):
+      - Bulk pre-fetch BSSIDs
+      - New → INSERT network + observation
+      - Existing → UPDATE if better (RSSI, last_seen, SSID)
+  → Trilaterate (RSSI-weighted centroid)
+  → Award XP + evaluate 61 badge criteria
+  → Invalidate stats cache
+  → Publish status via Redis pub/sub
 ```
 
-- Batch size: 2000 observations
-- Bulk pre-fetch: all BSSIDs in batch via `WHERE IN (...)` (1 query instead of N)
-- Bulk insert: `db.add_all()` for observations
-- Trilateration: fetch all observations for affected networks in 1 query
+## Security
+
+### Authentication
+- GitHub OAuth with CSRF state parameter (Redis, 300s TTL)
+- One-time auth codes (Redis, 60s TTL) — not reusable
+- JWT access tokens: HS256, 60min expiry
+- Refresh tokens: httpOnly, Secure, SameSite=Lax cookies, 30-day expiry
+- API tokens: SHA-256 hashed in DB, raw token returned once at creation
+
+### Rate Limiting
+- Redis sliding window (sorted set), 1-minute window
+- Rate limit key uses SHA-256 hash of token (no token prefix leak)
+- Limits: 100/min (JWT auth), 50/min (API token), 20/min (anonymous)
+
+### CORS
+- Origins restricted to configured `APP_URL` (+ localhost variants in dev)
+- No wildcard origins in production
+- Credentials allowed only for configured origins
+
+### Upload Security
+- Archive formats (.zip, .gz, .tar.gz) rejected
+- File size limit (100MB default, configurable)
+- Files stored in Redis with 4h TTL (auto-cleanup)
+- Processing in sandboxed worker (separate process)
+
+### Data Validation
+- Pydantic schemas for all request/response models
+- SQLAlchemy ORM with parameterized queries (no SQL injection)
+- User-generated content (SSIDs, device names) HTML-escaped on frontend
 
 ## XP & Level System
 
-- `XP_PER_IMPORT = 1` (per new WiFi network)
-- `XP_PER_SESSION = 5` (per upload)
-- BT/BLE: `new_bt_count // 2` XP
-- Level formula: `level * (level-1) * (level+20) * 5`
-- Level 100 (max) requires ~5.94M XP
+```python
+def xp_for_level(level):
+    return level * (level - 1) * (level + 20) * 5
 
-### Rank Titles
+# Examples:
+# Level 10  =    4,500 XP
+# Level 25  =   54,000 XP
+# Level 50  =  343,000 XP
+# Level 75  = 1,068,750 XP
+# Level 100 = 5,940,000 XP (≈ 5.94M unique WiFi discoveries)
+```
 
-| Level | Rank |
-|-------|------|
-| 1 | Script Kiddie |
-| 3 | Packet Sniffer |
-| 5 | Signal Hunter |
-| 8 | Spectrum Crawler |
-| 12 | RF Scout |
-| 16 | Wave Rider |
-| 22 | Airspace Mapper |
-| 30 | Ether Walker |
-| 40 | Frequency Ghost |
-| 55 | Wardriving Legend |
-| 70 | Phantom Scanner |
-| 85 | Radio God |
-| 100 | Omniscient Eye |
+## Configuration
 
-## Worker Configuration
+All settings via environment variables (`.env` file):
 
-- Queue: ARQ (async Redis queue)
-- Workers: 2 replicas, 10 concurrent jobs each
-- Job timeout: 30 minutes
-- Max retries: 3
-- Stale cleanup: marks transactions >20min old as "error" on worker restart
-- Redis file TTL: 4 hours
-
-## API Authentication
-
-- **OAuth**: GitHub only (state stored in Redis, 5min TTL)
-- **JWT**: 60-minute access token, 30-day refresh token (httpOnly cookie)
-- **API tokens**: bcrypt-hashed, bearer auth for programmatic access
-- **Rate limiting**: 100 req/min (auth), 50 (API token), 20 (anon)
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DATABASE_URL` | `postgresql+asyncpg://wardrove:wardrove@localhost:5432/wardrove` | PostgreSQL connection |
+| `REDIS_URL` | `redis://localhost:6379/0` | Redis connection |
+| `SECRET_KEY` | `change-me-in-production` | JWT signing key |
+| `APP_URL` | `http://localhost:8847` | Public app URL (CORS + OAuth) |
+| `GITHUB_CLIENT_ID` | — | GitHub OAuth app client ID |
+| `GITHUB_CLIENT_SECRET` | — | GitHub OAuth app client secret |
+| `UPLOAD_MAX_SIZE_MB` | `100` | Max upload file size |
+| `RATE_LIMIT_AUTH` | `100` | Requests/min for authenticated users |
+| `RATE_LIMIT_API_TOKEN` | `50` | Requests/min for API token users |
+| `RATE_LIMIT_ANON` | `20` | Requests/min for anonymous users |
+| `WORKER_MAX_JOBS` | `10` | Concurrent jobs per worker |

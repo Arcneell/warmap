@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 
+from app.config import get_settings
 from app.database import init_db
 from app.routes import auth, upload, networks, stats, profile, groups, export, queue, geocode
 
@@ -28,12 +29,17 @@ async def lifespan(app: FastAPI):
     await engine.dispose()
 
 
-app = FastAPI(title="Wardrove", version="2.0.0", lifespan=lifespan)
+app = FastAPI(title="Wardrove", version="3.0.0", lifespan=lifespan)
 
-# CORS
+# CORS — restrict to configured app URL in production
+_settings = get_settings()
+_cors_origins = [_settings.app_url]
+if _settings.app_url.startswith("http://localhost"):
+    _cors_origins.extend(["http://localhost:3000", "http://localhost:8847"])
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

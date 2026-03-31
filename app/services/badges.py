@@ -42,55 +42,81 @@ _ICONS = {
     "crystal": '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2l-4 7h8l-4-7z"/><path d="M8 9l-6 7h20l-6-7"/><path d="M2 16l10 6 10-6"/></svg>',
 }
 
-# Badge seeds
+# ── Badge seeds ──
+# Higher thresholds, more tiers, technical humor
 BADGE_SEEDS = [
-    # --- WiFi milestones (8 tiers) ---
-    {"slug": "wifi_10", "name": "First Steps", "description": "Discover 10 WiFi networks", "icon_svg": _ICONS["wifi"], "category": "wifi", "tier": 1, "criteria_type": "wifi_count", "criteria_value": 10},
-    {"slug": "wifi_100", "name": "Scanner", "description": "Discover 100 WiFi networks", "icon_svg": _ICONS["wifi"], "category": "wifi", "tier": 2, "criteria_type": "wifi_count", "criteria_value": 100},
-    {"slug": "wifi_500", "name": "Collector", "description": "Discover 500 WiFi networks", "icon_svg": _ICONS["radar"], "category": "wifi", "tier": 3, "criteria_type": "wifi_count", "criteria_value": 500},
-    {"slug": "wifi_1000", "name": "Cartographer", "description": "Discover 1,000 WiFi networks", "icon_svg": _ICONS["compass"], "category": "wifi", "tier": 4, "criteria_type": "wifi_count", "criteria_value": 1000},
-    {"slug": "wifi_5000", "name": "Explorer", "description": "Discover 5,000 WiFi networks", "icon_svg": _ICONS["compass"], "category": "wifi", "tier": 5, "criteria_type": "wifi_count", "criteria_value": 5000},
-    {"slug": "wifi_10000", "name": "Wardriving Pro", "description": "Discover 10,000 WiFi networks", "icon_svg": _ICONS["rocket"], "category": "wifi", "tier": 6, "criteria_type": "wifi_count", "criteria_value": 10000},
-    {"slug": "wifi_50000", "name": "Spectrum Master", "description": "Discover 50,000 WiFi networks", "icon_svg": _ICONS["crown"], "category": "wifi", "tier": 7, "criteria_type": "wifi_count", "criteria_value": 50000},
-    {"slug": "wifi_100000", "name": "Omniscient", "description": "Discover 100,000 WiFi networks", "icon_svg": _ICONS["eye"], "category": "wifi", "tier": 8, "criteria_type": "wifi_count", "criteria_value": 100000},
-    # --- BT milestones (5 tiers) ---
-    {"slug": "bt_10", "name": "Bluetooth Scout", "description": "Discover 10 Bluetooth devices", "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 1, "criteria_type": "bt_count", "criteria_value": 10},
-    {"slug": "bt_100", "name": "Bluetooth Hunter", "description": "Discover 100 Bluetooth devices", "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 2, "criteria_type": "bt_count", "criteria_value": 100},
-    {"slug": "bt_500", "name": "Bluetooth Stalker", "description": "Discover 500 Bluetooth devices", "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 3, "criteria_type": "bt_count", "criteria_value": 500},
-    {"slug": "bt_1000", "name": "Bluetooth Master", "description": "Discover 1,000 Bluetooth devices", "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 4, "criteria_type": "bt_count", "criteria_value": 1000},
-    {"slug": "bt_5000", "name": "Bluetooth Overlord", "description": "Discover 5,000 Bluetooth devices", "icon_svg": _ICONS["crown"], "category": "bluetooth", "tier": 5, "criteria_type": "bt_count", "criteria_value": 5000},
-    # --- Cell milestones (5 tiers) ---
-    {"slug": "cell_10", "name": "Tower Spotter", "description": "Discover 10 cell towers", "icon_svg": _ICONS["cell"], "category": "cell", "tier": 1, "criteria_type": "cell_count", "criteria_value": 10},
-    {"slug": "cell_100", "name": "Tower Tracker", "description": "Discover 100 cell towers", "icon_svg": _ICONS["cell"], "category": "cell", "tier": 2, "criteria_type": "cell_count", "criteria_value": 100},
-    {"slug": "cell_500", "name": "Tower Climber", "description": "Discover 500 cell towers", "icon_svg": _ICONS["tower"], "category": "cell", "tier": 3, "criteria_type": "cell_count", "criteria_value": 500},
-    {"slug": "cell_1000", "name": "Infrastructure Mapper", "description": "Discover 1,000 cell towers", "icon_svg": _ICONS["tower"], "category": "cell", "tier": 4, "criteria_type": "cell_count", "criteria_value": 1000},
-    {"slug": "cell_5000", "name": "Grid Architect", "description": "Discover 5,000 cell towers", "icon_svg": _ICONS["bolt"], "category": "cell", "tier": 5, "criteria_type": "cell_count", "criteria_value": 5000},
-    # --- Upload milestones (6 tiers) ---
-    {"slug": "upload_1", "name": "First Upload", "description": "Upload your first file", "icon_svg": _ICONS["upload"], "category": "upload", "tier": 1, "criteria_type": "upload_count", "criteria_value": 1},
-    {"slug": "upload_10", "name": "Regular Contributor", "description": "Upload 10 files", "icon_svg": _ICONS["upload"], "category": "upload", "tier": 2, "criteria_type": "upload_count", "criteria_value": 10},
-    {"slug": "upload_25", "name": "Dedicated Scanner", "description": "Upload 25 files", "icon_svg": _ICONS["upload"], "category": "upload", "tier": 3, "criteria_type": "upload_count", "criteria_value": 25},
-    {"slug": "upload_50", "name": "Data Provider", "description": "Upload 50 files", "icon_svg": _ICONS["upload"], "category": "upload", "tier": 4, "criteria_type": "upload_count", "criteria_value": 50},
-    {"slug": "upload_100", "name": "Data Legend", "description": "Upload 100 files", "icon_svg": _ICONS["trophy"], "category": "upload", "tier": 5, "criteria_type": "upload_count", "criteria_value": 100},
-    {"slug": "upload_500", "name": "Data God", "description": "Upload 500 files", "icon_svg": _ICONS["gem"], "category": "upload", "tier": 6, "criteria_type": "upload_count", "criteria_value": 500},
-    # --- XP milestones (6 tiers) ---
-    {"slug": "xp_100", "name": "Newbie", "description": "Earn 100 XP", "icon_svg": _ICONS["xp"], "category": "xp", "tier": 1, "criteria_type": "xp", "criteria_value": 100},
-    {"slug": "xp_1000", "name": "Experienced", "description": "Earn 1,000 XP", "icon_svg": _ICONS["xp"], "category": "xp", "tier": 2, "criteria_type": "xp", "criteria_value": 1000},
-    {"slug": "xp_5000", "name": "Seasoned", "description": "Earn 5,000 XP", "icon_svg": _ICONS["xp"], "category": "xp", "tier": 3, "criteria_type": "xp", "criteria_value": 5000},
-    {"slug": "xp_10000", "name": "Veteran", "description": "Earn 10,000 XP", "icon_svg": _ICONS["flame"], "category": "xp", "tier": 4, "criteria_type": "xp", "criteria_value": 10000},
-    {"slug": "xp_50000", "name": "Elite", "description": "Earn 50,000 XP", "icon_svg": _ICONS["flame"], "category": "xp", "tier": 5, "criteria_type": "xp", "criteria_value": 50000},
-    {"slug": "xp_100000", "name": "Transcendent", "description": "Earn 100,000 XP", "icon_svg": _ICONS["crystal"], "category": "xp", "tier": 6, "criteria_type": "xp", "criteria_value": 100000},
-    # --- Level milestones (5 tiers) ---
-    {"slug": "level_5", "name": "Signal Hunter", "description": "Reach level 5", "icon_svg": _ICONS["level"], "category": "level", "tier": 1, "criteria_type": "level", "criteria_value": 5},
-    {"slug": "level_10", "name": "RF Scout", "description": "Reach level 10", "icon_svg": _ICONS["level"], "category": "level", "tier": 2, "criteria_type": "level", "criteria_value": 10},
-    {"slug": "level_25", "name": "Wave Rider", "description": "Reach level 25", "icon_svg": _ICONS["level"], "category": "level", "tier": 3, "criteria_type": "level", "criteria_value": 25},
-    {"slug": "level_50", "name": "Frequency Ghost", "description": "Reach level 50", "icon_svg": _ICONS["ghost"], "category": "level", "tier": 4, "criteria_type": "level", "criteria_value": 50},
-    {"slug": "level_100", "name": "Omniscient Eye", "description": "Reach max level 100", "icon_svg": _ICONS["eye"], "category": "level", "tier": 5, "criteria_type": "level", "criteria_value": 100},
-    # --- Special / Encryption badges ---
-    {"slug": "wep_hunter", "name": "WEP Hunter", "description": "Discover 10 WEP networks", "icon_svg": _ICONS["unlock"], "category": "special", "tier": 1, "criteria_type": "wep_count", "criteria_value": 10},
-    {"slug": "wep_archaeologist", "name": "WEP Archaeologist", "description": "Discover 100 WEP networks", "icon_svg": _ICONS["unlock"], "category": "special", "tier": 2, "criteria_type": "wep_count", "criteria_value": 100},
-    {"slug": "open_spotter", "name": "Open Spotter", "description": "Discover 50 open networks", "icon_svg": _ICONS["lock"], "category": "special", "tier": 1, "criteria_type": "open_count", "criteria_value": 50},
-    {"slug": "wpa3_pioneer", "name": "WPA3 Pioneer", "description": "Discover 50 WPA3 networks", "icon_svg": _ICONS["shield"], "category": "special", "tier": 1, "criteria_type": "wpa3_count", "criteria_value": 50},
-    {"slug": "wpa3_evangelist", "name": "WPA3 Evangelist", "description": "Discover 500 WPA3 networks", "icon_svg": _ICONS["shield"], "category": "special", "tier": 2, "criteria_type": "wpa3_count", "criteria_value": 500},
+    # --- WiFi milestones (10 tiers) ---
+    {"slug": "wifi_10",      "name": "Noob Scanner",        "description": "Discover 10 WiFi networks. It's a start... we'll say.",                      "icon_svg": _ICONS["wifi"],    "category": "wifi", "tier": 1,  "criteria_type": "wifi_count", "criteria_value": 10},
+    {"slug": "wifi_100",     "name": "SSID Collector",      "description": "Discover 100 WiFi networks. You're filling up the Pokedex.",                 "icon_svg": _ICONS["wifi"],    "category": "wifi", "tier": 2,  "criteria_type": "wifi_count", "criteria_value": 100},
+    {"slug": "wifi_500",     "name": "Hotspot Hoarder",     "description": "Discover 500 WiFi networks. Your mom says you spend too much time outside.", "icon_svg": _ICONS["radar"],   "category": "wifi", "tier": 3,  "criteria_type": "wifi_count", "criteria_value": 500},
+    {"slug": "wifi_2500",    "name": "Access Point Addict", "description": "Discover 2,500 WiFi networks. It's not an addiction, it's science.",         "icon_svg": _ICONS["compass"], "category": "wifi", "tier": 4,  "criteria_type": "wifi_count", "criteria_value": 2500},
+    {"slug": "wifi_10000",   "name": "RF Cartographer",     "description": "Discover 10,000 WiFi networks. Google Maps asks you for advice.",            "icon_svg": _ICONS["compass"], "category": "wifi", "tier": 5,  "criteria_type": "wifi_count", "criteria_value": 10000},
+    {"slug": "wifi_25000",   "name": "Wardriving Veteran",  "description": "Discover 25,000 WiFi networks. You've scanned more networks than some countries have.",  "icon_svg": _ICONS["rocket"], "category": "wifi", "tier": 6, "criteria_type": "wifi_count", "criteria_value": 25000},
+    {"slug": "wifi_50000",   "name": "Spectrum Overlord",   "description": "Discover 50,000 WiFi networks. Radio waves recognize you on the street.",    "icon_svg": _ICONS["crown"],   "category": "wifi", "tier": 7,  "criteria_type": "wifi_count", "criteria_value": 50000},
+    {"slug": "wifi_100000",  "name": "The Omniscient",      "description": "Discover 100,000 WiFi networks. You ARE the Internet.",                      "icon_svg": _ICONS["eye"],     "category": "wifi", "tier": 8,  "criteria_type": "wifi_count", "criteria_value": 100000},
+    {"slug": "wifi_250000",  "name": "802.11 Demigod",      "description": "Discover 250,000 WiFi networks. The IEEE wrote a paper about you.",          "icon_svg": _ICONS["crystal"], "category": "wifi", "tier": 9,  "criteria_type": "wifi_count", "criteria_value": 250000},
+    {"slug": "wifi_500000",  "name": "The WiFi Itself",     "description": "Discover 500,000 WiFi networks. You don't connect to WiFi. WiFi connects to you.", "icon_svg": _ICONS["gem"], "category": "wifi", "tier": 10, "criteria_type": "wifi_count", "criteria_value": 500000},
+
+    # --- Bluetooth milestones (8 tiers) ---
+    {"slug": "bt_10",    "name": "Bluetooth Curious",   "description": "Discover 10 BT devices. Just the tip of the iceberg.",                     "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 1, "criteria_type": "bt_count", "criteria_value": 10},
+    {"slug": "bt_100",   "name": "Pairing Enthusiast",  "description": "Discover 100 BT devices. Connection accepted.",                            "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 2, "criteria_type": "bt_count", "criteria_value": 100},
+    {"slug": "bt_500",   "name": "BLE Stalker",         "description": "Discover 500 BT devices. Your scanning range is... concerning.",            "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 3, "criteria_type": "bt_count", "criteria_value": 500},
+    {"slug": "bt_2000",  "name": "Bluetooth Bender",    "description": "Discover 2,000 BT devices. Even lost AirPods fear you.",                   "icon_svg": _ICONS["bluetooth"], "category": "bluetooth", "tier": 4, "criteria_type": "bt_count", "criteria_value": 2000},
+    {"slug": "bt_5000",  "name": "The Tooth Fairy",     "description": "Discover 5,000 BT devices. You collect blue teeth.",                       "icon_svg": _ICONS["crown"],     "category": "bluetooth", "tier": 5, "criteria_type": "bt_count", "criteria_value": 5000},
+    {"slug": "bt_10000", "name": "Frequency Hoarder",   "description": "Discover 10,000 BT devices. 2.4GHz band asks for personal space.",         "icon_svg": _ICONS["radar"],     "category": "bluetooth", "tier": 6, "criteria_type": "bt_count", "criteria_value": 10000},
+    {"slug": "bt_25000", "name": "BLE Whisperer",       "description": "Discover 25,000 BT devices. Devices pair with you automatically.",         "icon_svg": _ICONS["ghost"],     "category": "bluetooth", "tier": 7, "criteria_type": "bt_count", "criteria_value": 25000},
+    {"slug": "bt_50000", "name": "King Harald",          "description": "Discover 50,000 BT devices. Named after the Viking king, obviously.",     "icon_svg": _ICONS["gem"],       "category": "bluetooth", "tier": 8, "criteria_type": "bt_count", "criteria_value": 50000},
+
+    # --- Cell tower milestones (8 tiers) ---
+    {"slug": "cell_10",    "name": "Tower Spotter",          "description": "Discover 10 cell towers. You look up at the right moments.",           "icon_svg": _ICONS["cell"],  "category": "cell", "tier": 1, "criteria_type": "cell_count", "criteria_value": 10},
+    {"slug": "cell_100",   "name": "Cell Seeker",            "description": "Discover 100 cell towers. Antennas hold no more secrets.",             "icon_svg": _ICONS["cell"],  "category": "cell", "tier": 2, "criteria_type": "cell_count", "criteria_value": 100},
+    {"slug": "cell_500",   "name": "IMSI Catcher Catcher",   "description": "Discover 500 cell towers. You catch the catchers.",                   "icon_svg": _ICONS["tower"], "category": "cell", "tier": 3, "criteria_type": "cell_count", "criteria_value": 500},
+    {"slug": "cell_2000",  "name": "Grid Architect",         "description": "Discover 2,000 cell towers. You could work at a telco.",              "icon_svg": _ICONS["tower"], "category": "cell", "tier": 4, "criteria_type": "cell_count", "criteria_value": 2000},
+    {"slug": "cell_5000",  "name": "Telco Overlord",         "description": "Discover 5,000 cell towers. Carriers send you job offers.",            "icon_svg": _ICONS["bolt"],  "category": "cell", "tier": 5, "criteria_type": "cell_count", "criteria_value": 5000},
+    {"slug": "cell_10000", "name": "Infrastructure Oracle",  "description": "Discover 10,000 cell towers. You see the grid in your sleep.",        "icon_svg": _ICONS["eye"],   "category": "cell", "tier": 6, "criteria_type": "cell_count", "criteria_value": 10000},
+    {"slug": "cell_25000", "name": "Spectrum Sovereign",     "description": "Discover 25,000 cell towers. FCC calls you for consultations.",       "icon_svg": _ICONS["crown"], "category": "cell", "tier": 7, "criteria_type": "cell_count", "criteria_value": 25000},
+    {"slug": "cell_50000", "name": "The Base Station",       "description": "Discover 50,000 cell towers. You don't find towers. Towers find you.","icon_svg": _ICONS["gem"],   "category": "cell", "tier": 8, "criteria_type": "cell_count", "criteria_value": 50000},
+
+    # --- Upload milestones (8 tiers) ---
+    {"slug": "upload_1",    "name": "First Blood",        "description": "Upload your first file. The first one is always special.",           "icon_svg": _ICONS["upload"], "category": "upload", "tier": 1, "criteria_type": "upload_count", "criteria_value": 1},
+    {"slug": "upload_10",   "name": "Regular Feeder",     "description": "Upload 10 files. The machine is hungry, keep going.",                "icon_svg": _ICONS["upload"], "category": "upload", "tier": 2, "criteria_type": "upload_count", "criteria_value": 10},
+    {"slug": "upload_50",   "name": "Data Pusher",        "description": "Upload 50 files. You push more than your git repo.",                 "icon_svg": _ICONS["upload"], "category": "upload", "tier": 3, "criteria_type": "upload_count", "criteria_value": 50},
+    {"slug": "upload_100",  "name": "Pipeline Operator",  "description": "Upload 100 files. CI/CD of wardriving.",                             "icon_svg": _ICONS["rocket"], "category": "upload", "tier": 4, "criteria_type": "upload_count", "criteria_value": 100},
+    {"slug": "upload_250",  "name": "Data Firehose",      "description": "Upload 250 files. AWS Kinesis sends you its resume.",                 "icon_svg": _ICONS["flame"],  "category": "upload", "tier": 5, "criteria_type": "upload_count", "criteria_value": 250},
+    {"slug": "upload_500",  "name": "The Upload God",     "description": "Upload 500 files. You've uploaded more data than Wikipedia.",         "icon_svg": _ICONS["trophy"], "category": "upload", "tier": 6, "criteria_type": "upload_count", "criteria_value": 500},
+    {"slug": "upload_1000", "name": "Bandwidth Incarnate", "description": "Upload 1,000 files. Your ISP writes to you personally.",            "icon_svg": _ICONS["crown"],  "category": "upload", "tier": 7, "criteria_type": "upload_count", "criteria_value": 1000},
+    {"slug": "upload_2500", "name": "The ETL Pipeline",    "description": "Upload 2,500 files. You are the data warehouse.",                   "icon_svg": _ICONS["gem"],    "category": "upload", "tier": 8, "criteria_type": "upload_count", "criteria_value": 2500},
+
+    # --- XP milestones (8 tiers) ---
+    {"slug": "xp_100",     "name": "First Sparks",    "description": "Earn 100 XP. Everybody starts somewhere.",                      "icon_svg": _ICONS["xp"],      "category": "xp", "tier": 1, "criteria_type": "xp", "criteria_value": 100},
+    {"slug": "xp_1000",    "name": "Warming Up",      "description": "Earn 1,000 XP. The grind begins.",                              "icon_svg": _ICONS["xp"],      "category": "xp", "tier": 2, "criteria_type": "xp", "criteria_value": 1000},
+    {"slug": "xp_5000",    "name": "Getting Serious",  "description": "Earn 5,000 XP. This is no longer casual.",                     "icon_svg": _ICONS["xp"],      "category": "xp", "tier": 3, "criteria_type": "xp", "criteria_value": 5000},
+    {"slug": "xp_25000",   "name": "Veteran Status",   "description": "Earn 25,000 XP. Your dedication is showing.",                  "icon_svg": _ICONS["flame"],   "category": "xp", "tier": 4, "criteria_type": "xp", "criteria_value": 25000},
+    {"slug": "xp_100000",  "name": "XP Hoarder",       "description": "Earn 100,000 XP. You could buy a castle with these points.",   "icon_svg": _ICONS["flame"],   "category": "xp", "tier": 5, "criteria_type": "xp", "criteria_value": 100000},
+    {"slug": "xp_500000",  "name": "Grind Lord",       "description": "Earn 500,000 XP. Sleep is for the weak.",                      "icon_svg": _ICONS["crystal"], "category": "xp", "tier": 6, "criteria_type": "xp", "criteria_value": 500000},
+    {"slug": "xp_1000000", "name": "Millionaire",       "description": "Earn 1,000,000 XP. XP millionaire. Real money? Not so much.", "icon_svg": _ICONS["crown"],   "category": "xp", "tier": 7, "criteria_type": "xp", "criteria_value": 1000000},
+    {"slug": "xp_5000000", "name": "Transcendent",      "description": "Earn 5,000,000 XP. You've transcended mortal grinding.",      "icon_svg": _ICONS["gem"],     "category": "xp", "tier": 8, "criteria_type": "xp", "criteria_value": 5000000},
+
+    # --- Level milestones (8 tiers) ---
+    {"slug": "level_5",   "name": "SSID Stalker",     "description": "Reach level 5. You're starting to see the signals.",             "icon_svg": _ICONS["level"],  "category": "level", "tier": 1, "criteria_type": "level", "criteria_value": 5},
+    {"slug": "level_10",  "name": "RF Scout",          "description": "Reach level 10. Double digits. Respect.",                       "icon_svg": _ICONS["level"],  "category": "level", "tier": 2, "criteria_type": "level", "criteria_value": 10},
+    {"slug": "level_20",  "name": "Wave Rider",        "description": "Reach level 20. You ride the electromagnetic wave.",            "icon_svg": _ICONS["level"],  "category": "level", "tier": 3, "criteria_type": "level", "criteria_value": 20},
+    {"slug": "level_35",  "name": "Root Shell Ronin",  "description": "Reach level 35. The samurai of the spectrum.",                  "icon_svg": _ICONS["level"],  "category": "level", "tier": 4, "criteria_type": "level", "criteria_value": 35},
+    {"slug": "level_50",  "name": "Frequency Ghost",   "description": "Reach level 50. Half-way to immortality.",                     "icon_svg": _ICONS["ghost"],  "category": "level", "tier": 5, "criteria_type": "level", "criteria_value": 50},
+    {"slug": "level_70",  "name": "Shadow Broker",     "description": "Reach level 70. Your BSSID knowledge is terrifying.",           "icon_svg": _ICONS["eye"],    "category": "level", "tier": 6, "criteria_type": "level", "criteria_value": 70},
+    {"slug": "level_85",  "name": "NSA's Most Wanted", "description": "Reach level 85. They monitor you back.",                       "icon_svg": _ICONS["crown"],  "category": "level", "tier": 7, "criteria_type": "level", "criteria_value": 85},
+    {"slug": "level_100", "name": "The WiFi Itself",   "description": "Reach max level 100. I am the 802.11 protocol.",               "icon_svg": _ICONS["gem"],    "category": "level", "tier": 8, "criteria_type": "level", "criteria_value": 100},
+
+    # --- Encryption specials ---
+    {"slug": "wep_10",            "name": "WEP Archaeologist",   "description": "Find 10 WEP networks. Digital archaeology at its finest.",                "icon_svg": _ICONS["unlock"],  "category": "special", "tier": 1, "criteria_type": "wep_count", "criteria_value": 10},
+    {"slug": "wep_100",           "name": "WEP Fossil Hunter",   "description": "Find 100 WEP networks. You still find WEP in 2026?!",                    "icon_svg": _ICONS["unlock"],  "category": "special", "tier": 3, "criteria_type": "wep_count", "criteria_value": 100},
+    {"slug": "wep_500",           "name": "WEP Extinction Event","description": "Find 500 WEP networks. You've documented an endangered species.",         "icon_svg": _ICONS["unlock"],  "category": "special", "tier": 5, "criteria_type": "wep_count", "criteria_value": 500},
+    {"slug": "open_50",           "name": "Open Season",         "description": "Find 50 open networks. Humanity is lost.",                                "icon_svg": _ICONS["lock"],    "category": "special", "tier": 1, "criteria_type": "open_count", "criteria_value": 50},
+    {"slug": "open_500",          "name": "Security Nihilist",   "description": "Find 500 open networks. You've seen too much unencrypted traffic.",       "icon_svg": _ICONS["lock"],    "category": "special", "tier": 3, "criteria_type": "open_count", "criteria_value": 500},
+    {"slug": "open_2000",         "name": "The Password Is...",  "description": "Find 2,000 open networks. There is no password. There never was.",        "icon_svg": _ICONS["lock"],    "category": "special", "tier": 5, "criteria_type": "open_count", "criteria_value": 2000},
+    {"slug": "wpa3_50",           "name": "WPA3 Pioneer",        "description": "Find 50 WPA3 networks. Preaching the good word of encryption.",           "icon_svg": _ICONS["shield"],  "category": "special", "tier": 1, "criteria_type": "wpa3_count", "criteria_value": 50},
+    {"slug": "wpa3_500",          "name": "WPA3 Evangelist",     "description": "Find 500 WPA3 networks. The future is now, old man.",                     "icon_svg": _ICONS["shield"],  "category": "special", "tier": 3, "criteria_type": "wpa3_count", "criteria_value": 500},
+    {"slug": "wpa3_5000",         "name": "WPA3 Prophet",        "description": "Find 5,000 WPA3 networks. You've seen the promised land of encryption.",  "icon_svg": _ICONS["shield"],  "category": "special", "tier": 5, "criteria_type": "wpa3_count", "criteria_value": 5000},
 ]
 
 

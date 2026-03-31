@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a1628"/>
-      <stop offset="100%" stop-color="#1a1a2e"/>
+      <stop offset="0%" stop-color="#0a0a0f"/>
+      <stop offset="100%" stop-color="#12121a"/>
     </linearGradient>
     <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#34d399"/>
-      <stop offset="100%" stop-color="#0d9373"/>
+      <stop offset="0%" stop-color="#00ff88"/>
+      <stop offset="100%" stop-color="#00d4ff"/>
     </linearGradient>
     <filter id="f">
       <feGaussianBlur stdDeviation="1.5" result="b"/>
@@ -16,16 +16,16 @@
   <!-- Shield shape -->
   <path d="M32 4 L56 16 L56 34 C56 48 44 58 32 62 C20 58 8 48 8 34 L8 16 Z" fill="url(#bg)" stroke="url(#glow)" stroke-width="2"/>
   <!-- Radar rings -->
-  <circle cx="32" cy="32" r="6" fill="none" stroke="#0d9373" stroke-width="1.5" opacity="0.3"/>
-  <circle cx="32" cy="32" r="12" fill="none" stroke="#0d9373" stroke-width="1.2" opacity="0.25"/>
-  <circle cx="32" cy="32" r="18" fill="none" stroke="#0d9373" stroke-width="1" opacity="0.2"/>
+  <circle cx="32" cy="32" r="6" fill="none" stroke="#00d4ff" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="32" cy="32" r="12" fill="none" stroke="#00d4ff" stroke-width="1.2" opacity="0.2"/>
+  <circle cx="32" cy="32" r="18" fill="none" stroke="#00d4ff" stroke-width="1" opacity="0.15"/>
   <!-- Radar sweep -->
-  <path d="M32 32 L32 14 A18 18 0 0 1 47 25 Z" fill="url(#glow)" opacity="0.25" filter="url(#f)"/>
+  <path d="M32 32 L32 14 A18 18 0 0 1 47 25 Z" fill="url(#glow)" opacity="0.2" filter="url(#f)"/>
   <!-- Center dot -->
-  <circle cx="32" cy="32" r="3" fill="#34d399" filter="url(#f)"/>
-  <!-- WiFi signal arcs (top) -->
-  <path d="M26 20 a8 8 0 0 1 12 0" stroke="#34d399" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>
-  <path d="M22 16 a14 14 0 0 1 20 0" stroke="#34d399" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
-  <!-- XP diamond accent -->
-  <polygon points="32,46 36,50 32,54 28,50" fill="#0d9373" opacity="0.6"/>
+  <circle cx="32" cy="32" r="3" fill="#00ff88" filter="url(#f)"/>
+  <!-- WiFi signal arcs -->
+  <path d="M26 20 a8 8 0 0 1 12 0" stroke="#00ff88" stroke-width="1.8" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M22 16 a14 14 0 0 1 20 0" stroke="#00ff88" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.5"/>
+  <!-- XP diamond -->
+  <polygon points="32,46 36,50 32,54 28,50" fill="#00d4ff" opacity="0.5"/>
 </svg>

@@ -3,97 +3,83 @@
 </p>
 
 <h1 align="center">Wardrove</h1>
-
+<p align="center"><strong>The Wardriving MMORPG</strong></p>
 <p align="center">
-  <strong>Self-hosted wardriving platform with RPG progression</strong><br>
-  Map &bull; Collect &bull; Level up &bull; Compete
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI">
-  <img src="https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white" alt="PostgreSQL">
-  <img src="https://img.shields.io/badge/Redis-7-DC382D?logo=redis&logoColor=white" alt="Redis">
-  <img src="https://img.shields.io/badge/license-MIT-green" alt="MIT">
+  Self-hosted platform that turns wireless network mapping into an RPG.<br/>
+  Upload captures, visualize on maps, earn XP, unlock badges, climb the leaderboard.
 </p>
 
 ---
 
-## Features
+## Stack
 
-| | |
-|---|---|
-| **Multi-format import** | WiGLE CSV, Kismet, KML/KMZ, NetStumbler, iOS consolidated.db, and more |
-| **Interactive map** | WiFi / Bluetooth / Cell layers, clustering, heatmap, live refresh |
-| **RPG progression** | 100 levels, 13 ranks, 42 badges with tiered rarity and glow effects |
-| **Player profiles** | Public profiles, badge showcase, embeddable SVG card |
-| **Leaderboard** | Global rankings, groups, clickable player profiles |
-| **Advanced stats** | Encryption, channels, manufacturers (OUI), countries (MCC), top SSIDs |
-| **Export** | WiGLE CSV, KML, GeoJSON |
-| **Async processing** | Parallel workers, bulk DB operations, real-time status via SSE |
+| Layer | Tech |
+|-------|------|
+| **Frontend** | React 19, TypeScript, Vite 6, Tailwind CSS 4, Zustand, Framer Motion, Recharts, Leaflet |
+| **Backend** | Python 3.12, FastAPI 0.115, SQLAlchemy (async), Alembic |
+| **Database** | PostgreSQL 16 + PostGIS |
+| **Cache/Queue** | Redis 7, ARQ workers (2 replicas, 10 concurrent jobs each) |
+| **Auth** | GitHub OAuth, JWT (access + refresh), API tokens |
+| **Infra** | Docker Compose (5 services) |
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/Arcneell/Wardrove.git
-cd Wardrove
-cp .env.example .env    # edit with your secrets
-docker compose up -d --build
+# 1. Clone
+git clone https://github.com/youruser/wardrove && cd wardrove
+
+# 2. Configure
+cp .env.example .env
+# Edit .env: set GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET, SECRET_KEY
+
+# 3. Run
+docker compose up -d
+
+# Open http://localhost:8847
 ```
 
-Open `http://localhost:8847`
+### GitHub OAuth Setup
 
-## GitHub OAuth
-
-1. Create an OAuth App at [github.com/settings/developers](https://github.com/settings/developers)
-2. Set callback URL to `http://<your-url>/api/v1/auth/callback/github`
-3. Add to `.env`:
-```env
-GITHUB_CLIENT_ID=...
-GITHUB_CLIENT_SECRET=...
-APP_URL=http://localhost:8847
-```
-
-## Environment
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DB_PASSWORD` | `wardrove` | PostgreSQL password |
-| `SECRET_KEY` | -- | JWT signing key |
-| `APP_URL` | `http://localhost:8847` | Public URL |
-| `GITHUB_CLIENT_ID` | -- | OAuth client ID |
-| `GITHUB_CLIENT_SECRET` | -- | OAuth secret |
-| `WORKER_MAX_JOBS` | `10` | Concurrent jobs per worker |
+1. Go to **GitHub → Settings → Developer settings → OAuth Apps → New**
+2. Set **Homepage URL** to your app URL (e.g. `http://localhost:8847`)
+3. Set **Callback URL** to `http://localhost:8847/api/v1/auth/callback/github`
+4. Copy Client ID and Client Secret into `.env`
 
 ## Architecture
 
 ```
-Browser  -->  FastAPI (port 8847)  -->  PostgreSQL + PostGIS
-                  |                         ^
-                  v                         |
-               Redis  <-->  ARQ Workers (x2, 10 jobs each)
+Browser (React 19 SPA)
+  │
+  ├─ /api/v1/*  →  FastAPI (port 8847)
+  │                   ├─ PostgreSQL + PostGIS
+  │                   └─ Redis (cache, queue, pub/sub)
+  │
+  └─ SSE streams  →  Redis pub/sub → real-time upload status
+                      ARQ Workers (x2) → async file parsing
 ```
 
-**Services**: `app` &bull; `worker-1` &bull; `worker-2` &bull; `postgres` &bull; `redis`
+## Pages
 
-## API
+| Route | Name | Description |
+|-------|------|-------------|
+| `/` | **Map** | Interactive dark map with WiFi/BT/Cell layers, heatmap, marker clusters, search |
+| `/armory` | **Armory** | Bluetooth + Cell tower inventory with pagination and filters |
+| `/leaderboard` | **Arena** | Player rankings with animated podium, sort by XP or WiFi count |
+| `/stats` | **World** | Global stats: encryption distribution, channels, manufacturers, countries |
+| `/quarters` | **Quarters** | Character sheet, badge grimoire, quest log, API token management |
+| `/profile/:id` | **Profile** | Public player profile with level ring, trophy room |
+| `/terms` | **Terms** | Terms of Service and data usage policy |
 
-Base: `/api/v1`
+## RPG System
 
-```bash
-# Upload
-curl -X POST http://localhost:8847/api/v1/upload \
-  -H "Authorization: Bearer TOKEN" \
-  -F "files=@capture.wigle.csv"
+- **100 levels** — exponential curve (level 100 ≈ 5.94M XP)
+- **13 ranks** — *Script Kiddie* → *Packet Peasant* → ... → *NSA's Most Wanted* → *The WiFi Itself*
+- **61 badges** — 7 categories, tiers from Common to Mythic with glow effects
+- **XP**: +1/WiFi, +2/BT, +3/Cell, +10/upload, +25 daily bonus
 
-# Player profile
-curl http://localhost:8847/api/v1/profile/u/username
+## Supported Formats
 
-# Export
-curl http://localhost:8847/api/v1/export/geojson > networks.geojson
-```
-
-Full API docs at `/docs` (Swagger UI).
+WiGLE CSV, Kismet (.netxml, .csv), KML/KMZ, NetStumbler (.ns1, .wiscan), iOS consolidated.db, DStumbler, MacStumbler (.plist)
 
 ## Development
 
@@ -103,12 +89,21 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 
 # Frontend
-cd frontend && npm install && npm run dev
-
-# Worker
-python -m arq app.tasks.worker.WorkerSettings
+cd frontend && npm install
+npm run dev    # localhost:3000, proxies /api → :8000
+npm run build  # → ../app/static/
 ```
+
+## Security
+
+- CORS restricted to configured `APP_URL` (no wildcard in production)
+- JWT access tokens (60min) + httpOnly refresh cookies (30 days)
+- Rate limiting: 100 req/min (auth), 50 (API token), 20 (anon)
+- Upload size limit (100MB default), archive uploads disabled
+- OAuth state parameter validation with Redis TTL
+- SVG badge content sanitized on render
+- All user-generated content HTML-escaped in map popups
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE)

@@ -1,3 +1,4 @@
+import hashlib
 import time
 
 from fastapi import HTTPException, Request
@@ -45,7 +46,8 @@ async def rate_limit(request: Request):
 
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith("Bearer "):
-        key = f"rl:auth:{auth_header[7:16]}"
+        token_hash = hashlib.sha256(auth_header[7:].encode()).hexdigest()[:16]
+        key = f"rl:auth:{token_hash}"
         limit = settings.rate_limit_auth
     else:
         client_ip = request.client.host if request.client else "unknown"
