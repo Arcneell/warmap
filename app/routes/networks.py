@@ -50,20 +50,6 @@ async def list_wifi(
     )
 
 
-@router.get("/wifi/{bssid}", response_model=WifiNetworkResponse)
-async def wifi_detail(
-    bssid: str = Path(pattern=r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"),
-    db: AsyncSession = Depends(get_db),
-):
-    result = await db.execute(
-        select(WifiNetwork).where(WifiNetwork.bssid == bssid.upper())
-    )
-    network = result.scalar_one_or_none()
-    if not network:
-        raise HTTPException(status_code=404, detail="WiFi network not found")
-    return network
-
-
 @router.get("/wifi/geojson")
 async def wifi_geojson(
     encryption: str | None = Query(None),
@@ -112,6 +98,20 @@ async def wifi_count(
         query = query.where(WifiNetwork.encryption.in_(enc_list))
     count = await db.scalar(query) or 0
     return {"count": count}
+
+
+@router.get("/wifi/{bssid}", response_model=WifiNetworkResponse)
+async def wifi_detail(
+    bssid: str = Path(pattern=r"^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$"),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(WifiNetwork).where(WifiNetwork.bssid == bssid.upper())
+    )
+    network = result.scalar_one_or_none()
+    if not network:
+        raise HTTPException(status_code=404, detail="WiFi network not found")
+    return network
 
 
 # --- Bluetooth ---
