@@ -1,51 +1,51 @@
 @import "tailwindcss";
 
-@font-face { font-family: 'Cinzel'; font-display: swap; }
-
-/* ── D&D Parchment Theme ── */
+/* ── Thème parchemin / grimoire (Tailwind v4 @theme) ── */
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
-  --font-display: 'Cinzel', serif;
+  --font-sans: 'Merriweather', 'Georgia', ui-serif, serif;
+  --font-mono: 'Courier Prime', ui-monospace, monospace;
+  --font-display: 'Cinzel', 'Times New Roman', serif;
 
-  /* Parchment backgrounds — warm yellowed paper tones */
-  --color-void: #1a1714;
-  --color-panel: #23201b;
-  --color-surface: #2c2822;
-  --color-surface-hover: #35302a;
-  --color-border: #3e3830;
-  --color-border-glow: #584f42;
+  --color-parchment: #fdf5e6;
+  --color-parchment-warm: #f4ebd8;
+  --color-ink: #1a1a1a;
+  --color-sepia: #4a3b32;
+  --color-wax-red: #9b2c2c;
+  --color-gold-tarnish: #b8860b;
 
-  /* Text — warm readable tones */
-  --color-primary: #e8dcc8;
-  --color-secondary: #a89880;
-  --color-muted: #756a58;
+  /* Alias historiques (composants existants) → palette manuscrite */
+  --color-void: #e5dcc8;
+  --color-panel: #ebe4d0;
+  --color-surface: #f4ebd8;
+  --color-surface-hover: #efe8d4;
+  --color-border: #3d3429;
+  --color-border-glow: #1a1a1a;
 
-  /* Core accents */
-  --color-xp: #5cb85c;
-  --color-wifi: #4a9eda;
-  --color-bt: #8a7ad8;
-  --color-cell: #d4943a;
-  --color-danger: #c9463e;
-  --color-rare: #7e5ec2;
-  --color-legendary: #c9a032;
-  --color-mythic: #b8366e;
-  --color-epic: #7e5ec2;
+  --color-primary: #1a1a1a;
+  --color-secondary: #4a3b32;
+  --color-muted: #6b5c4e;
 
-  /* Encryption */
-  --color-enc-wpa3: #5cb85c;
-  --color-enc-wpa2: #4a9eda;
-  --color-enc-wpa: #d4943a;
-  --color-enc-wep: #c9463e;
-  --color-enc-open: #8a7e6a;
-  --color-enc-unknown: #6a6050;
+  --color-xp: #1a1a1a;
+  --color-wifi: #1e4a6b;
+  --color-bt: #4a2f6b;
+  --color-cell: #8b4513;
+  --color-danger: #9b2c2c;
+  --color-rare: #5c3d7a;
+  --color-legendary: #b8860b;
+  --color-mythic: #7a1f3a;
+  --color-epic: #5c3d7a;
 
-  /* Gold — parchment accent */
-  --color-gold: #c4a24e;
-  --color-gold-dim: #8a7236;
+  --color-enc-wpa3: #1a4d2e;
+  --color-enc-wpa2: #1e4a6b;
+  --color-enc-wpa: #8b4513;
+  --color-enc-wep: #9b2c2c;
+  --color-enc-open: #5c5348;
+  --color-enc-unknown: #5c5348;
+
+  --color-gold: #b8860b;
+  --color-gold-dim: #8b6914;
 }
 
-/* ── Base ── */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html, body, #root {
@@ -54,44 +54,115 @@ html, body, #root {
 }
 
 body {
-  background: var(--color-void);
+  background-color: #2a1f18;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E"),
+    linear-gradient(165deg, #3d2e26 0%, #2a1f18 35%, #1f1813 70%, #2c221c 100%);
   color: var(--color-primary);
   font-family: var(--font-sans);
   font-size: 14px;
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--color-void); }
+/* Feuille de grimoire centrée sur la table */
+.grimoire-sheet {
+  background:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='0.045'/%3E%3C/svg%3E"),
+    linear-gradient(180deg, #fffef8 0%, var(--color-parchment) 22%, var(--color-parchment-warm) 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.35) inset,
+    12px 18px 40px rgba(0, 0, 0, 0.45),
+    4px 4px 0 0 rgba(26, 26, 26, 0.85);
+}
+
+/* Ruban marque-page (HUD) */
+.grimoire-ribbon {
+  background: linear-gradient(180deg, #d4c4a8 0%, #c4b08a 48%, #b09a72 100%);
+  border-bottom: 3px double var(--color-ink);
+  box-shadow: inset 0 2px 0 rgba(255, 250, 240, 0.35);
+}
+
+/* Onglets cuir (barre latérale carte) */
+.leather-tabs {
+  background: linear-gradient(90deg, #4a3328 0%, #5c4033 40%, #4a3328 100%);
+  border: 3px solid #1a1410;
+  box-shadow:
+    inset 2px 0 0 rgba(255, 255, 255, 0.06),
+    inset -3px 0 8px rgba(0, 0, 0, 0.35),
+    4px 0 12px rgba(0, 0, 0, 0.25);
+}
+
+.leather-tab-active {
+  background: linear-gradient(180deg, #fdf5e6 0%, #ebe4d0 100%);
+  color: var(--color-wax-red);
+  border-color: var(--color-ink);
+  box-shadow: 3px 3px 0 0 rgba(26, 26, 26, 0.9);
+}
+
+/* Morceau de parchemin « épinglé » */
+.parchment-scrap {
+  background: var(--color-parchment);
+  border: 2px solid var(--color-ink);
+  box-shadow: 4px 4px 0 0 rgba(26, 26, 26, 0.92);
+}
+
+/* Encadré type livre de règles */
+.rulebook-frame {
+  border: 3px double var(--color-ink);
+  outline: 1px solid rgba(26, 26, 26, 0.35);
+  outline-offset: 4px;
+  background: var(--color-parchment);
+}
+
+/* Ligne de registre / livre de comptes */
+.ledger-line {
+  border-bottom: 1px solid rgba(26, 26, 26, 0.22);
+  background-image: linear-gradient(transparent calc(100% - 1px), rgba(26, 26, 26, 0.05) 1px);
+  background-size: 100% 1.85rem;
+}
+
+/* Scrollbar — lanière / encre */
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track {
+  background: #3d2f26;
+  border: 2px solid #1a1a1a;
+}
 ::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: 5px;
-  border: 2px solid var(--color-void);
+  background: linear-gradient(180deg, #5c4033 0%, #3d2a22 50%, #2a1f1a 100%);
+  border: 2px solid #1a1a1a;
+  box-shadow: inset 0 0 0 1px rgba(244, 235, 216, 0.15);
 }
-::-webkit-scrollbar-thumb:hover { background: var(--color-border-glow); }
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #6b4a3a 0%, #4a3328 100%);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #5c4033 #3d2f26;
+}
 
-/* ══════════════════════════════════════
-   LEAFLET MAP — readable dark style
-   ══════════════════════════════════════ */
+/* ══════════ Leaflet — carte au trésor ══════════ */
 .leaflet-container {
-  background: #1a1714 !important;
-  font-family: var(--font-sans) !important;
+  background: var(--color-parchment-warm) !important;
+  font-family: var(--font-mono) !important;
 }
 
-.leaflet-tile-pane {
-  filter: brightness(0.92) contrast(1.05) saturate(0.55) sepia(0.15);
+.leaflet-tile-pane .leaflet-tile.leaflet-tile-parchment,
+img.leaflet-tile.leaflet-tile-parchment {
+  filter: sepia(0.6) contrast(1.2) grayscale(0.2) !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: var(--color-panel) !important;
-  color: var(--color-primary) !important;
-  border-radius: 8px !important;
-  border: 2px solid var(--color-gold-dim) !important;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.5) !important;
+  background: var(--color-parchment) !important;
+  color: var(--color-ink) !important;
+  border-radius: 0 !important;
+  border: 3px double var(--color-ink) !important;
+  box-shadow: 4px 4px 0 0 rgba(26, 26, 26, 1) !important;
   font-size: 13px !important;
 }
-.leaflet-popup-tip { background: var(--color-panel) !important; }
+.leaflet-popup-tip {
+  background: var(--color-parchment) !important;
+  border: 2px solid var(--color-ink);
+}
 .leaflet-popup-content {
   font-family: var(--font-mono) !important;
   font-size: 13px !important;
@@ -99,68 +170,72 @@ body {
   margin: 14px 18px !important;
 }
 
+.map-marker-root { background: transparent !important; border: none !important; }
+
 .marker-cluster-small,
 .marker-cluster-medium,
 .marker-cluster-large {
-  background: rgba(74, 158, 218, 0.18) !important;
+  background: rgba(26, 26, 26, 0.12) !important;
 }
 .marker-cluster-small div,
 .marker-cluster-medium div,
 .marker-cluster-large div {
-  background: rgba(74, 158, 218, 0.78) !important;
-  color: #fff !important;
+  background: var(--color-parchment) !important;
+  color: var(--color-ink) !important;
+  border: 2px solid var(--color-ink) !important;
+  box-shadow: 3px 3px 0 0 rgba(26, 26, 26, 1) !important;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .leaflet-control-zoom a {
-  background: var(--color-panel) !important;
-  color: var(--color-primary) !important;
-  border-color: var(--color-border) !important;
+  background: var(--color-parchment) !important;
+  color: var(--color-ink) !important;
+  border: 2px solid var(--color-ink) !important;
+  box-shadow: 3px 3px 0 0 rgba(26, 26, 26, 1) !important;
   width: 34px !important;
   height: 34px !important;
-  line-height: 34px !important;
+  line-height: 30px !important;
   font-size: 18px !important;
 }
-.leaflet-control-zoom a:hover { background: var(--color-surface) !important; }
+.leaflet-control-zoom a:hover { background: var(--color-surface-hover) !important; }
 .leaflet-control-attribution {
-  background: rgba(26, 23, 20, 0.8) !important;
+  background: rgba(253, 245, 230, 0.9) !important;
   color: var(--color-muted) !important;
   font-size: 10px !important;
+  border: 1px dashed var(--color-border) !important;
 }
 .leaflet-control-attribution a { color: var(--color-secondary) !important; }
 
-/* ══════════════════════════════════════
-   RPG ANIMATIONS
-   ══════════════════════════════════════ */
+/* Animations (sans ombres portées modernes) */
 @keyframes xp-shimmer {
   0% { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
 @keyframes glow-pulse {
-  0%, 100% { opacity: 0.6; }
+  0%, 100% { opacity: 0.85; }
   50% { opacity: 1; }
 }
 @keyframes badge-float {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
+  50% { transform: translateY(-2px); }
 }
 @keyframes level-up {
   0% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(1.2); opacity: 0.8; }
+  50% { transform: scale(1.08); opacity: 0.9; }
   100% { transform: scale(1); opacity: 1; }
 }
 @keyframes ring-fill {
   from { stroke-dashoffset: 283; }
 }
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
 @keyframes text-glow {
-  0%, 100% { text-shadow: 0 0 4px currentColor; }
-  50% { text-shadow: 0 0 12px currentColor, 0 0 20px currentColor; }
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
 }
 
 .animate-xp-shimmer { background-size: 200% 100%; animation: xp-shimmer 2s linear infinite; }
@@ -171,48 +246,35 @@ body {
 .animate-fade-in-up { animation: fade-in-up 0.4s ease-out forwards; }
 .animate-text-glow { animation: text-glow 2s ease-in-out infinite; }
 
-/* ══════════════════════════════════════
-   TIER GLOW EFFECTS
-   ══════════════════════════════════════ */
-.glow-common { box-shadow: 0 0 6px rgba(138, 126, 106, 0.3); }
-.glow-uncommon { box-shadow: 0 0 10px rgba(92, 184, 92, 0.35); }
-.glow-rare { box-shadow: 0 0 14px rgba(74, 158, 218, 0.4); }
-.glow-epic { box-shadow: 0 0 18px rgba(126, 94, 194, 0.45), 0 0 32px rgba(126, 94, 194, 0.15); }
-.glow-legendary { box-shadow: 0 0 22px rgba(196, 160, 50, 0.45), 0 0 40px rgba(196, 160, 50, 0.15); }
-.glow-mythic { box-shadow: 0 0 26px rgba(184, 54, 110, 0.45), 0 0 48px rgba(184, 54, 110, 0.2); }
+/* Halos de rareté → bordures gravées (pas de blur/glow) */
+.glow-common { box-shadow: inset 0 0 0 2px rgba(61, 52, 41, 0.35); border-style: dashed !important; }
+.glow-uncommon { box-shadow: inset 0 0 0 2px rgba(30, 77, 46, 0.5); }
+.glow-rare { box-shadow: inset 0 0 0 2px rgba(30, 74, 107, 0.45); }
+.glow-epic { box-shadow: inset 0 0 0 3px rgba(92, 61, 122, 0.5); }
+.glow-legendary { box-shadow: inset 0 0 0 3px rgba(184, 134, 11, 0.55); }
+.glow-mythic { box-shadow: inset 0 0 0 3px rgba(155, 44, 44, 0.5); }
 
-/* ══════════════════════════════════════
-   PARCHMENT CARD SYSTEM
-   ══════════════════════════════════════ */
+/* Cartes parchemin */
 .parchment {
-  background:
-    linear-gradient(160deg, rgba(196,162,78,0.04) 0%, transparent 40%),
-    linear-gradient(340deg, rgba(196,162,78,0.02) 60%, transparent 100%),
-    var(--color-surface);
-  border: 1px solid var(--color-border);
-  box-shadow:
-    inset 0 1px 0 rgba(232, 220, 200, 0.04),
-    0 2px 8px rgba(0,0,0,0.25);
+  background: var(--color-surface);
+  border: 2px solid var(--color-ink);
+  box-shadow: 4px 4px 0 0 rgba(26, 26, 26, 1);
 }
 
 .parchment-header {
-  background:
-    linear-gradient(90deg, rgba(196,162,78,0.08), rgba(196,162,78,0.03), transparent);
-  border-bottom: 1px solid var(--color-border);
+  background: linear-gradient(180deg, #efe8d4 0%, var(--color-parchment-warm) 100%);
+  border-bottom: 3px double var(--color-ink);
 }
 
 .section-title {
   font-family: var(--font-display);
   font-weight: 700;
   font-size: 11px;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--color-gold);
+  color: var(--color-wax-red);
 }
 
-/* ══════════════════════════════════════
-   UTILITIES
-   ══════════════════════════════════════ */
 .font-display { font-family: var(--font-display); }
 .text-xp { color: var(--color-xp); }
 .text-wifi { color: var(--color-wifi); }
@@ -223,3 +285,30 @@ body {
 .bg-panel { background: var(--color-panel); }
 .bg-surface { background: var(--color-surface); }
 .border-subtle { border-color: var(--color-border); }
+
+/* Morceau de parchemin — modales */
+.ornate-card {
+  background: var(--color-parchment);
+  border: 3px double var(--color-ink);
+  box-shadow: 6px 6px 0 0 rgba(26, 26, 26, 1);
+}
+.ornate-header {
+  border-bottom: 2px dashed var(--color-ink);
+  background: linear-gradient(90deg, rgba(184, 134, 11, 0.08), transparent);
+}
+
+/* Tampon / sceau pour icônes badge (conteneur) */
+.badge-seal-frame {
+  border: 3px double var(--color-ink);
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #faf5eb, #e8dfcc);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.35), 3px 3px 0 0 rgba(26, 26, 26, 1);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}

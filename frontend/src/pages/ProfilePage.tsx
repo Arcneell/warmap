@@ -13,15 +13,15 @@ export function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-gold/30 border-t-gold rounded-full animate-spin" />
+      <div className="flex-1 flex items-center justify-center p-12">
+        <div className="w-8 h-8 border-2 border-ink border-t-transparent animate-spin" />
       </div>
     )
   }
 
   if (!profile) {
     return (
-      <div className="flex-1 flex items-center justify-center text-secondary text-[14px]">
+      <div className="flex-1 flex items-center justify-center p-12 text-sepia text-base font-mono leading-loose">
         Player not found
       </div>
     )
@@ -30,69 +30,86 @@ export function ProfilePage() {
   const earnedBadges = badges?.filter((b) => b.earned) ?? []
   const badgesByCategory = groupBy(badges ?? [], 'category')
 
+  const statRows = [
+    { icon: <Wifi size={20} strokeWidth={1.75} />, label: 'Wi-Fi networks charted', value: profile.wifi_discovered, color: 'text-wifi' },
+    { icon: <Bluetooth size={20} strokeWidth={1.75} />, label: 'Bluetooth signatures', value: profile.bt_discovered, color: 'text-bt' },
+    { icon: <Radio size={20} strokeWidth={1.75} />, label: 'Cell towers logged', value: profile.cell_discovered, color: 'text-cell' },
+    { icon: <Upload size={20} strokeWidth={1.75} />, label: 'Scrolls filed', value: profile.total_uploads, color: 'text-ink' },
+  ]
+
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-8">
-      <div className="max-w-3xl mx-auto">
-        {/* Hero */}
-        <div className="parchment rounded-xl p-6 sm:p-8 mb-4 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-b from-gold/[0.03] to-transparent" />
-          <div className="relative">
-            <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={130} avatarUrl={profile.avatar_url} />
-            <h2 className="font-display text-xl font-bold text-primary mt-3">{profile.username}</h2>
-            {profile.global_rank > 0 && (
-              <div className="text-[12px] font-mono text-legendary mt-1">Global Rank #{profile.global_rank}</div>
-            )}
-            {profile.created_at && (
-              <div className="flex items-center justify-center gap-1 text-[11px] text-muted mt-1.5">
-                <Calendar size={9} /> Joined {formatDate(profile.created_at)}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-3 mb-4">
-          <StatCard icon={<Wifi size={16} />} value={profile.wifi_discovered} label="WiFi" color="text-wifi" />
-          <StatCard icon={<Bluetooth size={16} />} value={profile.bt_discovered} label="Bluetooth" color="text-bt" />
-          <StatCard icon={<Radio size={16} />} value={profile.cell_discovered} label="Cell" color="text-cell" />
-          <StatCard icon={<Upload size={16} />} value={profile.total_uploads} label="Uploads" color="text-xp" />
-        </div>
-
-        {/* Badges */}
-        {earnedBadges.length > 0 && (
-          <div className="parchment rounded-xl p-4 sm:p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <h3 className="font-display font-bold text-[14px] text-gold">Trophy Room</h3>
-              <div className="flex-1 h-px bg-gradient-to-r from-gold/10 to-transparent" />
-              <span className="text-[11px] font-mono text-muted">{earnedBadges.length} earned</span>
+    <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="max-w-3xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 space-y-12 sm:space-y-16">
+        <section className="rulebook-frame p-10 sm:p-12 lg:p-16 bg-parchment text-center space-y-10">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-xl mx-auto">
+            Operator&apos;s folio
+          </h1>
+          <div className="flex flex-col items-center gap-8">
+            <LevelRing level={profile.level} xp={profile.xp} xpProgress={profile.xp_progress} size={140} avatarUrl={profile.avatar_url} />
+            <div className="space-y-3 leading-loose">
+              <h2 className="font-display text-2xl font-bold text-ink border-b border-black/20 pb-4 inline-block min-w-[12rem]">
+                {profile.username}
+              </h2>
+              {profile.global_rank > 0 && (
+                <p className="text-sm font-mono text-gold-tarnish leading-loose">
+                  World rank #{profile.global_rank}
+                </p>
+              )}
+              {profile.created_at && (
+                <p className="flex items-center justify-center gap-2 text-xs text-sepia font-mono leading-loose">
+                  <Calendar size={14} strokeWidth={1.75} /> Joined {formatDate(profile.created_at)}
+                </p>
+              )}
             </div>
+          </div>
+        </section>
+
+        <section className="rulebook-frame p-10 sm:p-12 bg-parchment space-y-8">
+          <h2 className="font-display text-xl sm:text-2xl font-bold text-ink text-center leading-loose border-b border-black/30 pb-6">
+            Deeds ledger
+          </h2>
+          <ul className="list-none flex flex-col">
+            {statRows.map((row) => (
+              <li key={row.label} className="ledger-line flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 py-8 px-2 first:pt-2">
+                <div className="flex items-center gap-5 min-w-0">
+                  <span className={`shrink-0 ${row.color} [&_svg]:text-ink`}>{row.icon}</span>
+                  <span className="font-display text-sm sm:text-base text-sepia leading-loose text-left">{row.label}</span>
+                </div>
+                <span className={`font-mono font-bold text-xl tabular-nums text-right shrink-0 ${row.color}`}>
+                  {formatNumber(row.value)}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {earnedBadges.length > 0 && (
+          <section className="rulebook-frame p-10 sm:p-12 lg:p-14 bg-parchment space-y-10">
+            <header className="text-center space-y-4 border-b border-black/30 pb-8">
+              <h2 className="font-display text-2xl font-bold text-wax-red leading-loose">Hall of seals</h2>
+              <p className="font-mono text-sm text-sepia leading-loose">
+                {earnedBadges.length} badges earned
+              </p>
+            </header>
             {Object.entries(badgesByCategory).map(([category, categoryBadges]) => {
               const earned = categoryBadges.filter((b) => b.earned)
               if (earned.length === 0) return null
               return (
-                <div key={category} className="mb-5 last:mb-0">
-                  <div className="text-[11px] font-display font-bold uppercase tracking-[0.15em] text-gold/60 mb-2">
+                <div key={category} className="space-y-8">
+                  <h3 className="font-display text-center text-sm font-bold uppercase tracking-[0.25em] text-gold-tarnish border-b border-black/20 pb-4 leading-loose">
                     {getCategoryLabel(category)}
-                  </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                    {earned.map((badge) => <BadgeCard key={badge.id} badge={badge} />)}
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 lg:gap-10">
+                    {earned.map((badge) => (
+                      <BadgeCard key={badge.id} badge={badge} />
+                    ))}
                   </div>
                 </div>
               )
             })}
-          </div>
+          </section>
         )}
       </div>
-    </div>
-  )
-}
-
-function StatCard({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
-  return (
-    <div className="parchment rounded-xl p-3 text-center">
-      <div className={`${color} mb-0.5 flex justify-center opacity-70`}>{icon}</div>
-      <div className={`font-mono font-bold text-lg ${color}`}>{formatNumber(value)}</div>
-      <div className="text-[11px] text-muted">{label}</div>
     </div>
   )
 }

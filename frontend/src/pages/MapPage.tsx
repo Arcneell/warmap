@@ -3,24 +3,34 @@ import L from 'leaflet'
 import 'leaflet.markercluster'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { useMapStore } from '@/stores/mapStore'
-import { useAuthStore } from '@/stores/authStore'
 import { authFetch } from '@/api/client'
 import { Flame, MapPin, Search, Crosshair } from 'lucide-react'
 
-import iconUrl from 'leaflet/dist/images/marker-icon.png'
-import shadowUrl from 'leaflet/dist/images/marker-shadow.png'
-L.Icon.Default.mergeOptions({ iconUrl, shadowUrl })
-
 const ENC_COLORS: Record<string, string> = {
-  WPA3: '#5cb85c', WPA2: '#4a9eda', WPA: '#d4943a', WEP: '#c9463e', Open: '#8a7e6a', Unknown: '#6a6050',
+  WPA3: '#1a4d2e', WPA2: '#1e4a6b', WPA: '#8b4513', WEP: '#9b2c2c', Open: '#5c5348', Unknown: '#5c5348',
 }
-const BT_COLOR = '#8a7ad8'
-const CELL_COLOR = '#d4943a'
+const BT_COLOR = '#4a2f6b'
+const CELL_COLOR = '#8b4513'
 
 function escapeHtml(str: string): string {
   const div = document.createElement('div')
   div.textContent = str
   return div.innerHTML
+}
+
+function inkCrossDivIcon(inkColor: string): L.DivIcon {
+  const safe = inkColor.replace(/[^#0-9a-fA-F]/g, '') || '#1a1a1a'
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 2.5v19" fill="none" stroke="${safe}" stroke-width="2.2" stroke-linecap="round"/>
+    <path d="M3.5 11.8c2.8-1.8 5.4-2.1 8.5-1.9 3 .2 6.3.6 9 2.1" fill="none" stroke="${safe}" stroke-width="1.8" stroke-linecap="round"/>
+    <path d="M4.2 14.5c2.4 1.4 5.1 1.9 7.8 1.7 2.8-.1 5.6-.9 8-2.2" fill="none" stroke="${safe}" stroke-width="1.8" stroke-linecap="round"/>
+  </svg>`
+  return L.divIcon({
+    className: 'map-marker-root',
+    html: `<div style="display:flex;align-items:center;justify-content:center;width:26px;height:26px;margin-top:-2px">${svg}</div>`,
+    iconSize: [26, 26],
+    iconAnchor: [13, 22],
+  })
 }
 
 export function MapPage() {
@@ -32,10 +42,8 @@ export function MapPage() {
   const cellLayerRef = useRef<L.LayerGroup | null>(null)
   const [searchVal, setSearchVal] = useState('')
   const { viewMode, mineOnly, showBtLayer, showCellLayer, encryptionFilters, setViewMode } = useMapStore()
-  const { isAuthenticated } = useAuthStore()
   const fetchWifiRef = useRef<((map: L.Map, cluster: L.MarkerClusterGroup) => Promise<void>) | null>(null)
 
-  // Initialize map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
 
@@ -47,10 +55,11 @@ export function MapPage() {
 
     L.control.zoom({ position: 'bottomleft' }).addTo(map)
 
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/">CARTO</a>',
       subdomains: 'abcd',
       maxZoom: 20,
+      className: 'leaflet-tile-parchment',
     }).addTo(map)
 
     const cluster = L.markerClusterGroup({
@@ -65,13 +74,12 @@ export function MapPage() {
     cellLayerRef.current = L.layerGroup()
     mapRef.current = map
 
-    // Try to geolocate user
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           map.setView([pos.coords.latitude, pos.coords.longitude], 13)
         },
-        () => { /* fallback to default view */ },
+        () => {},
         { timeout: 5000, enableHighAccuracy: false }
       )
     }
@@ -125,8 +133,14 @@ export function MapPage() {
         const heatData = features.map((f: any) => [f.geometry.coordinates[1], f.geometry.coordinates[0], 0.5])
         if (heatData.length > 0 && (L as any).heatLayer) {
           heatRef.current = (L as any).heatLayer(heatData, {
-            radius: 20, blur: 25, maxZoom: 17,
-            gradient: { 0.2: '#1a1714', 0.4: '#4a9eda44', 0.6: '#4a9eda', 0.8: '#5cb85c', 1: '#c9a032' },
+            radius: 22, blur: 26, maxZoom: 17,
+            gradient: {
+              0.15: 'rgba(244,235,216,0)',
+              0.35: 'rgba(26,26,26,0.25)',
+              0.55: 'rgba(155,44,44,0.45)',
+              0.75: 'rgba(139,69,19,0.55)',
+              1: 'rgba(184,134,11,0.65)',
+            },
           }).addTo(map)
         }
       } else {
@@ -136,17 +150,15 @@ export function MapPage() {
           const enc = p.encryption ?? 'Unknown'
           const color = ENC_COLORS[enc] ?? ENC_COLORS.Unknown
 
-          const marker = L.circleMarker([lat, lon], {
-            radius: 6, color, fillColor: color, fillOpacity: 0.8, weight: 1.5,
-          })
+          const marker = L.marker([lat, lon], { icon: inkCrossDivIcon(color) })
           marker.bindPopup(`
-            <div style="font-size:13px; line-height:1.8;">
-              <div style="font-weight:700; color:${color}; font-size:14px; margin-bottom:4px;">${escapeHtml(p.ssid || '<hidden>')}</div>
-              <span style="color:#a89880;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
-              <span style="color:#a89880;">Enc</span> <span style="color:${color}; font-weight:600;">${escapeHtml(enc)}</span><br/>
-              ${p.channel ? `<span style="color:#a89880;">Ch</span> ${p.channel}<br/>` : ''}
-              ${p.rssi ? `<span style="color:#a89880;">Sig</span> ${p.rssi} dBm<br/>` : ''}
-              <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color:#c4a24e; text-decoration:none;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
+            <div style="font-size:13px; line-height:1.75; color:#1a1a1a;">
+              <div style="font-weight:700; color:${color}; font-size:14px; margin-bottom:4px; font-family:system-ui;">${escapeHtml(p.ssid || '<hidden>')}</div>
+              <span style="color:#4a3b32;">BSSID</span> ${escapeHtml(String(p.bssid))}<br/>
+              <span style="color:#4a3b32;">Enc</span> <span style="color:${color}; font-weight:600;">${escapeHtml(enc)}</span><br/>
+              ${p.channel ? `<span style="color:#4a3b32;">Ch</span> ${p.channel}<br/>` : ''}
+              ${p.rssi ? `<span style="color:#4a3b32;">Sig</span> ${p.rssi} dBm<br/>` : ''}
+              <a href="https://www.google.com/maps?q=${lat},${lon}" target="_blank" rel="noopener" style="color:#8b6914; text-decoration:underline;">${lat.toFixed(5)}, ${lon.toFixed(5)}</a>
             </div>
           `)
           cluster.addLayer(marker)
@@ -166,8 +178,8 @@ export function MapPage() {
       btLayerRef.current?.clearLayers()
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
-        L.circleMarker([lat, lon], { radius: 5, color: BT_COLOR, fillColor: BT_COLOR, fillOpacity: 0.8, weight: 1 })
-          .bindPopup(`<div style="font-size:13px;"><b style="color:${BT_COLOR};">${escapeHtml(f.properties.name || '<unknown>')}</b><br/><span style="color:#a89880;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/><span style="color:#a89880;">Type</span> ${escapeHtml(String(f.properties.device_type))}</div>`)
+        L.marker([lat, lon], { icon: inkCrossDivIcon(BT_COLOR) })
+          .bindPopup(`<div style="font-size:13px;color:#1a1a1a;"><b style="color:${BT_COLOR};">${escapeHtml(f.properties.name || '<unknown>')}</b><br/><span style="color:#4a3b32;">MAC</span> ${escapeHtml(String(f.properties.mac))}<br/><span style="color:#4a3b32;">Type</span> ${escapeHtml(String(f.properties.device_type))}</div>`)
           .addTo(btLayerRef.current!)
       })
     } catch {}
@@ -182,8 +194,8 @@ export function MapPage() {
       cellLayerRef.current?.clearLayers()
       geojson.features?.forEach((f: any) => {
         const [lon, lat] = f.geometry.coordinates
-        L.circleMarker([lat, lon], { radius: 7, color: CELL_COLOR, fillColor: CELL_COLOR, fillOpacity: 0.8, weight: 1 })
-          .bindPopup(`<div style="font-size:13px;"><b style="color:${CELL_COLOR};">${f.properties.radio}</b><br/><span style="color:#a89880;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/><span style="color:#a89880;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}</div>`)
+        L.marker([lat, lon], { icon: inkCrossDivIcon(CELL_COLOR) })
+          .bindPopup(`<div style="font-size:13px;color:#1a1a1a;"><b style="color:${CELL_COLOR};">${f.properties.radio}</b><br/><span style="color:#4a3b32;">MCC/MNC</span> ${f.properties.mcc}/${f.properties.mnc}<br/><span style="color:#4a3b32;">LAC/CID</span> ${f.properties.lac}/${f.properties.cid}</div>`)
           .addTo(cellLayerRef.current!)
       })
     } catch {}
@@ -212,37 +224,67 @@ export function MapPage() {
   }
 
   return (
-    <div className="flex flex-1 overflow-hidden">
+    <div className="flex flex-1 min-h-0 flex-col lg:flex-row bg-transparent">
       <Sidebar />
-      <div className="flex-1 relative">
-        <div ref={containerRef} className="absolute inset-0" />
 
-        {/* Controls — top right */}
-        <div className="absolute top-3 right-3 z-[1000] flex gap-1.5">
-          <div className="flex gap-0.5 parchment rounded-lg p-1">
-            <CtrlBtn active={viewMode === 'markers'} onClick={() => setViewMode('markers')} icon={<MapPin size={15} />} label="Markers" />
-            <CtrlBtn active={viewMode === 'heatmap'} onClick={() => setViewMode('heatmap')} icon={<Flame size={15} />} label="Heatmap" />
+      <div className="flex-1 min-h-0 flex flex-col p-6 sm:p-10 lg:p-12 gap-8 overflow-hidden">
+        <header className="shrink-0 text-center space-y-4 px-4">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold text-ink tracking-wide leading-loose border-b border-black/30 pb-6 max-w-xl mx-auto">
+            Cartographer&apos;s chart
+          </h1>
+          <p className="text-sm sm:text-base text-sepia font-sans leading-loose max-w-2xl mx-auto">
+            Marks inked across the world-scroll — pan, filter, and seek an SSID sign.
+          </p>
+        </header>
+
+        <div className="flex-1 min-h-[320px] relative">
+          {/* Cadre double trait */}
+          <div
+            className="absolute inset-0 border-4 border-double border-ink pointer-events-none z-[400] rounded-[1px]"
+            style={{ boxShadow: 'inset 0 0 0 1px rgba(26,26,26,0.15)' }}
+            aria-hidden
+          />
+          <div ref={containerRef} className="absolute inset-3 sm:inset-5 z-0 rounded-[1px]" />
+
+          <div className="absolute top-4 right-4 sm:top-8 sm:right-10 z-[1000] flex flex-col items-end gap-6 max-w-[min(100%,18rem)]">
+            <div
+              className="parchment-scrap px-5 py-4 rotate-[0.8deg] origin-top-right"
+              role="group"
+              aria-label="Map view mode"
+            >
+              <p className="font-display text-[10px] uppercase tracking-[0.2em] text-wax-red mb-3 text-center border-b border-black/25 pb-2">
+                Sight
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <ScrapBtn active={viewMode === 'markers'} onClick={() => setViewMode('markers')} icon={<MapPin size={16} strokeWidth={1.75} className="text-ink" />} label="Marks" />
+                <ScrapBtn active={viewMode === 'heatmap'} onClick={() => setViewMode('heatmap')} icon={<Flame size={16} strokeWidth={1.75} className="text-wax-red" />} label="Heat" />
+              </div>
+            </div>
+            <div className="parchment-scrap p-3 -rotate-1" title="Recenter on me">
+              <button
+                type="button"
+                onClick={geolocate}
+                className="p-2 text-sepia hover:text-wax-red transition-colors leading-relaxed"
+                aria-label="Center map on my location"
+              >
+                <Crosshair size={20} strokeWidth={1.75} className="text-ink" />
+              </button>
+            </div>
           </div>
-          <button
-            onClick={geolocate}
-            className="parchment rounded-lg p-2.5 text-secondary hover:text-gold transition-colors"
-            title="Center on my location"
-          >
-            <Crosshair size={16} />
-          </button>
-        </div>
 
-        {/* Search — bottom */}
-        <div className="absolute bottom-4 left-4 right-4 sm:left-auto sm:right-4 z-[1000] sm:w-80">
-          <div className="relative">
-            <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              value={searchVal}
-              onChange={(e) => setSearchVal(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Search SSID or BSSID..."
-              className="w-full pl-10 pr-4 py-2.5 parchment rounded-lg text-[13px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
-            />
+          <div className="absolute bottom-6 left-6 right-6 sm:left-auto sm:right-10 sm:max-w-md z-[1000]">
+            <div className="parchment-scrap px-0 py-0 rotate-[0.4deg]">
+              <div className="relative border-b-2 border-ink/20">
+                <Search size={18} strokeWidth={1.75} className="absolute left-5 top-1/2 -translate-y-1/2 text-sepia pointer-events-none" />
+                <input
+                  value={searchVal}
+                  onChange={(e) => setSearchVal(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                  placeholder="SSID or fragment…"
+                  className="w-full pl-14 pr-5 py-5 bg-transparent text-sm font-mono text-ink placeholder:text-muted focus:outline-none leading-loose"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -250,16 +292,20 @@ export function MapPage() {
   )
 }
 
-function CtrlBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
+function ScrapBtn({ active, onClick, icon, label }: { active: boolean; onClick: () => void; icon: React.ReactNode; label: string }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-2 rounded-md text-[13px] font-semibold transition-all ${
-        active ? 'bg-gold/12 text-gold' : 'text-secondary hover:text-primary'
+      className={`flex items-center justify-center gap-2 px-4 py-3 text-xs font-display font-semibold border-2 transition-colors leading-loose whitespace-nowrap ${
+        active
+          ? 'border-ink bg-[#ebe4d0] text-wax-red'
+          : 'border-transparent text-sepia hover:text-ink border-dashed hover:border-ink'
       }`}
+      style={active ? { boxShadow: '2px 2px 0 0 #1a1a1a' } : undefined}
     >
       {icon}
-      <span className="hidden sm:inline">{label}</span>
+      <span>{label}</span>
     </button>
   )
 }

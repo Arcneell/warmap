@@ -55,14 +55,15 @@ export function UploadModal() {
             onDragLeave={() => setDragover(false)}
             onDrop={handleDrop}
             onClick={() => inputRef.current?.click()}
-            className={`border border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
-              dragover ? 'border-gold bg-gold/5' : 'border-border hover:border-gold/40'
+            className={`border-[3px] border-dashed p-8 text-center cursor-pointer transition-colors ${
+              dragover ? 'border-wax-red bg-[#ebe4d0]' : 'border-ink hover:border-wax-red/60'
             }`}
+            style={{ boxShadow: dragover ? '4px 4px 0 0 #1a1a1a' : undefined }}
           >
-            <FileUp size={28} className="mx-auto mb-2 text-muted" />
-            <p className="text-xs text-secondary mb-1">Drag & drop captures here</p>
-            <p className="text-[9px] text-muted mb-2">WiGLE CSV, Kismet, KML, NetStumbler, and more</p>
-            <span className="inline-block px-3 py-1.5 rounded-md bg-gold/10 text-gold text-[10px] font-semibold border border-gold/25">
+            <FileUp size={28} strokeWidth={1.5} className="mx-auto mb-2 text-sepia" />
+            <p className="text-xs text-sepia mb-1 font-display">Drag &amp; drop captures here</p>
+            <p className="text-[9px] text-muted mb-2 font-mono">WiGLE CSV, Kismet, KML, NetStumbler, and more</p>
+            <span className="inline-block px-3 py-1.5 border-2 border-ink bg-parchment text-gold-tarnish text-[10px] font-display font-bold">
               Browse Files
             </span>
             <input ref={inputRef} type="file" multiple accept={ACCEPTED} onChange={(e) => setFiles(Array.from(e.target.files ?? []))} className="hidden" />
@@ -71,20 +72,25 @@ export function UploadModal() {
           {files.length > 0 && (
             <div className="mt-3 space-y-1">
               {files.map((f, i) => (
-                <div key={i} className="flex items-center justify-between bg-void/30 rounded-md px-2.5 py-1.5 border border-border/50">
-                  <span className="text-[10px] font-mono text-primary truncate">{f.name}</span>
-                  <span className="text-[9px] text-muted flex-shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
+                <div
+                  key={i}
+                  className="flex items-center justify-between bg-parchment px-2.5 py-1.5 border border-ink/40 font-mono"
+                >
+                  <span className="text-[10px] text-ink truncate">{f.name}</span>
+                  <span className="text-[9px] text-sepia flex-shrink-0">{(f.size / 1024).toFixed(1)} KB</span>
                 </div>
               ))}
             </div>
           )}
 
           <button
+            type="button"
             onClick={handleUpload}
             disabled={files.length === 0 || uploading}
-            className="mt-3 w-full flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-lg bg-xp/10 text-xp text-xs font-bold border border-xp/25 hover:bg-xp/15 disabled:opacity-25 disabled:cursor-not-allowed transition-all"
+            className="mt-3 w-full flex items-center justify-center gap-1.5 px-4 py-2.5 border-2 border-ink bg-parchment text-ink text-xs font-display font-bold hover:text-wax-red disabled:opacity-25 disabled:cursor-not-allowed transition-colors"
+            style={{ boxShadow: '3px 3px 0 0 #1a1a1a' }}
           >
-            {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+            {uploading ? <Loader2 size={14} className="animate-spin" strokeWidth={1.75} /> : <Upload size={14} strokeWidth={1.75} />}
             {uploading ? 'Uploading...' : `Upload ${files.length} file${files.length !== 1 ? 's' : ''}`}
           </button>
         </>
@@ -93,15 +99,14 @@ export function UploadModal() {
           <div className="text-center py-3">
             {isProcessing && (
               <div className="flex flex-col items-center gap-2.5">
-                <Loader2 size={28} className="text-gold animate-spin" />
-                <div className="text-xs font-semibold text-primary">Processing captures...</div>
-                <div className="text-[10px] text-secondary capitalize">{sseStatus?.status ?? 'Queued'}</div>
-                <div className="w-full h-1.5 bg-void/60 rounded-full overflow-hidden border border-border/50">
+                <Loader2 size={28} className="text-wax-red animate-spin" strokeWidth={1.75} />
+                <div className="text-xs font-display font-semibold text-ink">Processing captures...</div>
+                <div className="text-[10px] text-sepia capitalize font-mono">{sseStatus?.status ?? 'Queued'}</div>
+                <div className="w-full h-2 border-2 border-ink bg-parchment overflow-hidden">
                   <div
-                    className="h-full rounded-full transition-all duration-500"
+                    className="h-full bg-ink transition-all duration-500 border-r border-wax-red/40"
                     style={{
                       width: sseStatus?.status === 'parsing' ? '30%' : sseStatus?.status === 'trilaterating' ? '60%' : sseStatus?.status === 'indexing' ? '85%' : '15%',
-                      background: 'linear-gradient(90deg, var(--color-gold-dim), var(--color-gold))',
                     }}
                   />
                 </div>
@@ -110,11 +115,11 @@ export function UploadModal() {
 
             {isDone && sseStatus && (
               <div className="flex flex-col items-center gap-2.5">
-                <CheckCircle size={28} className="text-xp" />
-                <div className="text-xs font-display font-bold text-xp">Quest Complete!</div>
-                <div className="w-full ornate-card rounded-lg p-3">
-                  <div className="grid grid-cols-2 gap-1.5 text-[10px]">
-                    <ResultRow label="New Networks" value={sseStatus.new_networks} color="text-xp" />
+                <CheckCircle size={28} className="text-ink" strokeWidth={1.5} />
+                <div className="text-xs font-display font-bold text-gold-tarnish">Quest Complete!</div>
+                <div className="w-full ornate-card p-3 border-2 border-ink -rotate-0">
+                  <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+                    <ResultRow label="New Networks" value={sseStatus.new_networks} color="text-ink" />
                     <ResultRow label="Updated" value={sseStatus.updated_networks} color="text-wifi" />
                     <ResultRow label="Skipped" value={sseStatus.skipped_networks} color="text-muted" />
                     <ResultRow label="WiFi" value={sseStatus.wifi_count} color="text-wifi" />
@@ -122,8 +127,8 @@ export function UploadModal() {
                     <ResultRow label="Cell Towers" value={sseStatus.cell_count} color="text-cell" />
                   </div>
                   {sseStatus.xp_earned > 0 && (
-                    <div className="mt-2.5 pt-2.5 border-t border-border/50 text-center">
-                      <span className="font-mono font-bold text-base text-xp animate-text-glow">
+                    <div className="mt-2.5 pt-2.5 border-t-2 border-dashed border-ink text-center">
+                      <span className="font-mono font-bold text-base text-gold-tarnish animate-text-glow">
                         +{formatNumber(sseStatus.xp_earned)} XP
                       </span>
                     </div>
@@ -134,16 +139,17 @@ export function UploadModal() {
 
             {isError && (
               <div className="flex flex-col items-center gap-2">
-                <XCircle size={28} className="text-danger" />
-                <div className="text-xs font-semibold text-danger">Processing Failed</div>
-                <div className="text-[10px] text-secondary">{sseStatus?.status_message ?? 'Unknown error'}</div>
+                <XCircle size={28} className="text-wax-red" strokeWidth={1.5} />
+                <div className="text-xs font-display font-semibold text-wax-red">Processing Failed</div>
+                <div className="text-[10px] text-sepia font-mono">{sseStatus?.status_message ?? 'Unknown error'}</div>
               </div>
             )}
           </div>
 
           <button
+            type="button"
             onClick={handleClose}
-            className="mt-3 w-full px-4 py-2 rounded-lg text-xs font-semibold text-secondary border border-border hover:text-primary hover:border-gold/30 transition-colors"
+            className="mt-3 w-full px-4 py-2 border-2 border-dashed border-ink text-xs font-display font-semibold text-sepia hover:text-wax-red transition-colors"
           >
             Close
           </button>
@@ -156,7 +162,7 @@ export function UploadModal() {
 function ResultRow({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <div className="flex justify-between py-0.5">
-      <span className="text-secondary">{label}</span>
+      <span className="text-sepia">{label}</span>
       <span className={`font-mono font-semibold ${color}`}>{formatNumber(value)}</span>
     </div>
   )

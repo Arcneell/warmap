@@ -22,133 +22,179 @@ export function Sidebar() {
   return (
     <>
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-black/60 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 bg-ink/40 z-[55] lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
       )}
 
-      <aside className={`
-        w-[300px] flex-shrink-0 bg-panel border-r border-border overflow-y-auto
-        flex flex-col gap-3 p-3
-        fixed top-14 bottom-0 z-40 transition-transform duration-300
-        lg:relative lg:top-0 lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-      `}>
+      <aside
+        className={`
+          leather-tabs
+          w-[min(100vw-2.5rem,320px)]
+          flex-shrink-0 overflow-y-auto
+          flex flex-col gap-8 p-8 lg:p-10
+          fixed inset-y-0 left-0 z-[60] transition-transform duration-300 ease-out
+          lg:static lg:z-auto lg:translate-x-0 lg:h-full lg:min-h-0
+          ${sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
+        `}
+        aria-label="Map tools and filters"
+      >
         <button
+          type="button"
           onClick={() => setSidebarOpen(false)}
-          className="lg:hidden self-end p-2 rounded-lg text-secondary hover:text-gold transition-colors"
+          className="lg:hidden self-end p-2 border-2 border-dashed border-black/40 text-parchment/90 hover:text-parchment mb-2"
+          aria-label="Close"
         >
-          <X size={20} />
+          <X size={22} strokeWidth={1.75} />
         </button>
 
-        {/* Profile */}
         {isAuthenticated && profile && (
-          <div className="parchment rounded-lg p-4">
-            <div className="flex items-center gap-3 mb-3">
+          <section className="rulebook-frame p-8 space-y-6 bg-parchment">
+            <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+              Your seal
+            </h2>
+            <div className="flex flex-col items-center gap-6 text-center">
               {profile.avatar_url && (
-                <img src={profile.avatar_url} alt="" className="w-11 h-11 rounded-full border-2 border-gold/30" />
+                <img
+                  src={profile.avatar_url}
+                  alt=""
+                  className="w-20 h-20 border-[3px] border-double border-ink object-cover"
+                  style={{ boxShadow: '4px 4px 0 0 #1a1a1a' }}
+                />
               )}
-              <div className="min-w-0">
-                <div className="font-semibold text-[14px] text-primary truncate">{profile.username}</div>
-                <div className="text-[12px] text-gold font-display">{profile.rank}</div>
+              <div className="space-y-2 leading-relaxed w-full min-w-0">
+                <p className="font-display font-semibold text-base text-ink truncate">{profile.username}</p>
+                <p className="font-display text-sm text-gold-tarnish leading-loose">{profile.rank}</p>
+              </div>
+              <div className="w-full pt-2 border-t border-black/20">
+                <XPBar
+                  xp={profile.xp}
+                  level={profile.level}
+                  xpProgress={profile.xp_progress}
+                  xpCurrent={profile.xp_current_level}
+                  xpNext={profile.xp_next_level}
+                />
               </div>
             </div>
-            <XPBar xp={profile.xp} level={profile.level} xpProgress={profile.xp_progress} xpCurrent={profile.xp_current_level} xpNext={profile.xp_next_level} />
-          </div>
+          </section>
         )}
 
-        {/* World stats */}
         {stats && (
-          <div className="parchment rounded-lg p-4">
-            <div className="section-title mb-3">World Status</div>
-            <div className="grid grid-cols-3 gap-3">
-              <StatBox icon={<Wifi size={16} />} value={stats.total_wifi} label="WiFi" color="text-wifi" />
-              <StatBox icon={<Bluetooth size={16} />} value={stats.total_bt} label="BT" color="text-bt" />
-              <StatBox icon={<Radio size={16} />} value={stats.total_cell} label="Cell" color="text-cell" />
-            </div>
-          </div>
+          <section className="rulebook-frame p-8 space-y-6 bg-parchment">
+            <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+              World tally
+            </h2>
+            <ul className="flex flex-col gap-6 list-none">
+              <LedgerStat icon={<Wifi size={20} strokeWidth={1.75} />} value={stats.total_wifi} label="Wi-Fi networks" color="text-wifi" />
+              <LedgerStat icon={<Bluetooth size={20} strokeWidth={1.75} />} value={stats.total_bt} label="BT devices" color="text-bt" />
+              <LedgerStat icon={<Radio size={20} strokeWidth={1.75} />} value={stats.total_cell} label="Cell towers" color="text-cell" />
+            </ul>
+          </section>
         )}
 
-        {/* Encryption */}
-        <div className="parchment rounded-lg p-4">
-          <div className="section-title mb-3">Encryption Filter</div>
-          <div className="flex flex-col gap-2">
+        <section className="rulebook-frame p-8 space-y-6 bg-parchment">
+          <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+            Encryption sigils
+          </h2>
+          <ul className="flex flex-col gap-5 list-none">
             {encryptions.map((enc) => (
-              <label key={enc} className="flex items-center gap-2.5 text-[13px] cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={encryptionFilters[enc] ?? true}
-                  onChange={(e) => setEncryptionFilter(enc, e.target.checked)}
-                  className="w-4 h-4 accent-gold rounded"
-                />
-                <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: encryptionColor(enc) }} />
-                <span className="text-secondary group-hover:text-primary transition-colors">{enc}</span>
-              </label>
+              <li key={enc}>
+                <label className="flex items-center gap-4 text-sm cursor-pointer group font-mono leading-relaxed">
+                  <input
+                    type="checkbox"
+                    checked={encryptionFilters[enc] ?? true}
+                    onChange={(e) => setEncryptionFilter(enc, e.target.checked)}
+                    className="w-4 h-4 accent-wax-red border-2 border-ink rounded-sm shrink-0"
+                  />
+                  <span className="w-3 h-3 shrink-0 border border-ink" style={{ backgroundColor: encryptionColor(enc) }} />
+                  <span className="text-sepia group-hover:text-ink transition-colors break-words">{enc}</span>
+                </label>
+              </li>
             ))}
-          </div>
-        </div>
+          </ul>
+        </section>
 
-        {/* Layers */}
-        <div className="parchment rounded-lg p-4">
-          <div className="section-title mb-3">Layers</div>
-          <div className="flex flex-col gap-1.5">
-            {isAuthenticated && <ToggleBtn active={mineOnly} onClick={toggleMineOnly} label="My Networks Only" />}
-            <ToggleBtn active={showBtLayer} onClick={toggleBtLayer} label="Bluetooth Devices" />
-            <ToggleBtn active={showCellLayer} onClick={toggleCellLayer} label="Cell Towers" />
-          </div>
-        </div>
+        <section className="rulebook-frame p-8 space-y-6 bg-parchment">
+          <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+            Veils lifted
+          </h2>
+          <ul className="flex flex-col gap-4 list-none">
+            {isAuthenticated && (
+              <li>
+                <LeatherToggle active={mineOnly} onClick={toggleMineOnly} label="My networks only" />
+              </li>
+            )}
+            <li>
+              <LeatherToggle active={showBtLayer} onClick={toggleBtLayer} label="Bluetooth devices" />
+            </li>
+            <li>
+              <LeatherToggle active={showCellLayer} onClick={toggleCellLayer} label="Cell towers" />
+            </li>
+          </ul>
+        </section>
 
-        {/* SSID search */}
-        <div className="parchment rounded-lg p-4">
-          <div className="section-title mb-3">SSID Search</div>
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+        <section className="rulebook-frame p-8 space-y-6 bg-parchment border-dashed">
+          <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+            SSID inquiry
+          </h2>
+          <div className="relative border-2 border-ink bg-[#fdf8ed]">
+            <Search size={18} strokeWidth={1.75} className="absolute left-4 top-1/2 -translate-y-1/2 text-sepia pointer-events-none" />
             <input
               type="text"
               value={ssidSearch}
               onChange={(e) => setSsidSearch(e.target.value)}
-              placeholder="Search networks..."
-              className="w-full pl-10 pr-3 py-2.5 bg-void/50 border border-border rounded-lg text-[13px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
+              placeholder="Network name…"
+              className="w-full pl-12 pr-4 py-4 bg-transparent text-sm font-mono text-ink placeholder:text-muted focus:outline-none leading-relaxed"
             />
           </div>
-        </div>
+        </section>
 
-        {/* Top SSIDs */}
         {stats?.top_ssids && stats.top_ssids.length > 0 && (
-          <div className="parchment rounded-lg p-4">
-            <div className="section-title mb-3">Top SSIDs</div>
-            <div className="flex flex-col">
+          <section className="rulebook-frame p-8 space-y-6 bg-parchment pb-10">
+            <h2 className="font-display text-center text-sm font-bold tracking-[0.2em] uppercase text-wax-red border-b border-black/30 pb-4 leading-loose">
+              Often-seen names
+            </h2>
+            <ol className="list-decimal list-inside flex flex-col gap-0 marker:font-display marker:text-gold-tarnish">
               {stats.top_ssids.slice(0, 8).map((s, i) => (
-                <div key={i} className="flex justify-between items-center text-[13px] py-1.5 border-b border-border/30 last:border-0">
-                  <span className="font-mono text-primary truncate max-w-[180px]">{s.ssid || '<hidden>'}</span>
-                  <span className="font-mono text-muted flex-shrink-0 ml-3">{formatNumber(s.count)}</span>
-                </div>
+                <li
+                  key={i}
+                  className="ledger-line flex justify-between items-baseline gap-6 py-4 px-2 text-sm leading-loose"
+                >
+                  <span className="font-mono text-ink truncate min-w-0">{s.ssid || '<hidden>'}</span>
+                  <span className="font-mono text-sepia shrink-0 tabular-nums">{formatNumber(s.count)}</span>
+                </li>
               ))}
-            </div>
-          </div>
+            </ol>
+          </section>
         )}
       </aside>
     </>
   )
 }
 
-function StatBox({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
+function LedgerStat({ icon, value, label, color }: { icon: React.ReactNode; value: number; label: string; color: string }) {
   return (
-    <div className="text-center">
-      <div className={`${color} mb-1 flex justify-center`}>{icon}</div>
-      <div className={`font-mono font-bold text-[17px] ${color}`}>{formatNumber(value)}</div>
-      <div className="text-[11px] text-muted">{label}</div>
-    </div>
+    <li className="ledger-line flex items-center justify-between gap-6 py-5 px-2 first:pt-0">
+      <div className="flex items-center gap-4 min-w-0">
+        <span className={`shrink-0 ${color} [&_svg]:text-ink`}>{icon}</span>
+        <span className="font-display text-sm text-sepia leading-loose">{label}</span>
+      </div>
+      <span className={`font-mono font-bold text-lg tabular-nums shrink-0 ${color}`}>{formatNumber(value)}</span>
+    </li>
   )
 }
 
-function ToggleBtn({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
+function LeatherToggle({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`w-full text-left px-3 py-2.5 rounded-lg text-[13px] font-semibold transition-all ${
-        active
-          ? 'bg-gold/10 text-gold border border-gold/20'
-          : 'text-secondary hover:text-primary hover:bg-surface border border-transparent'
+      className={`w-full text-left px-5 py-4 text-sm font-display font-semibold border-2 transition-all leading-loose ${
+        active ? 'leather-tab-active' : 'border-dashed border-transparent text-sepia hover:text-ink hover:border-ink bg-parchment/40'
       }`}
+      style={active ? { boxShadow: '3px 3px 0 0 #1a1a1a' } : undefined}
     >
       {label}
     </button>

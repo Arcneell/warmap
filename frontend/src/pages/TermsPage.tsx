@@ -3,31 +3,38 @@ import { Shield, ArrowLeft } from 'lucide-react'
 
 export function TermsPage() {
   return (
-    <div className="flex-1 overflow-y-auto p-4 sm:p-8">
-      <div className="max-w-3xl mx-auto">
-        <Link to="/" className="inline-flex items-center gap-1 text-[12px] text-secondary hover:text-gold mb-4 transition-colors">
-          <ArrowLeft size={12} /> Back to map
+    <div className="flex-1 overflow-y-auto min-h-0">
+      <div className="max-w-3xl mx-auto px-8 sm:px-12 lg:px-16 py-12 sm:py-16 lg:py-20">
+        <Link
+          to="/"
+          className="inline-flex items-center gap-2 text-sm font-mono text-sepia hover:text-wax-red mb-10 sm:mb-12 transition-colors leading-loose border-b border-dashed border-transparent hover:border-ink pb-1"
+        >
+          <ArrowLeft size={16} strokeWidth={1.75} className="text-ink shrink-0" /> Back to the chart
         </Link>
 
-        <div className="parchment rounded-xl p-5 sm:p-7">
-          <div className="flex items-center gap-2 mb-5">
-            <Shield size={20} className="text-gold" />
-            <h1 className="font-display text-xl font-bold text-gold">Terms of Service</h1>
-          </div>
+        <article className="rulebook-frame bg-parchment p-10 sm:p-12 lg:p-16 space-y-12">
+          <header className="text-center space-y-6 pb-4">
+            <div className="flex justify-center text-wax-red">
+              <Shield size={28} strokeWidth={1.75} />
+            </div>
+            <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8 max-w-lg mx-auto">
+              Terms of service
+            </h1>
+          </header>
 
-          <div className="space-y-5 text-[13px] text-secondary leading-relaxed">
-            <p className="text-primary font-semibold text-[14px]">
-              Last updated: March 2026. By using Wardrove, you agree to these terms.
-            </p>
+          <p className="text-ink font-display font-semibold text-base sm:text-lg border-l-4 border-wax-red pl-6 py-2 leading-loose max-w-2xl mx-auto text-center sm:text-left">
+            Last updated: March 2026. By using Wardrove, you agree to these terms.
+          </p>
 
-            <Section title="1. Acceptance of Terms">
+          <div className="space-y-10 sm:space-y-12 text-sm sm:text-base text-sepia leading-loose max-w-none">
+            <Section title="1. Acceptance of terms">
               <p>
-                By creating an account, uploading data, or otherwise using the Wardrove platform ("Service"),
-                you agree to be bound by these Terms of Service ("Terms"). If you do not agree, do not use the Service.
+                By creating an account, uploading data, or otherwise using the Wardrove platform (&quot;Service&quot;),
+                you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree, do not use the Service.
               </p>
             </Section>
 
-            <Section title="2. Description of Service">
+            <Section title="2. Description of service">
               <p>
                 Wardrove is a self-hosted wardriving data aggregation and visualization platform with RPG progression
                 mechanics. Users can upload wireless network observation data captured through legitimate wardriving
@@ -35,9 +42,9 @@ export function TermsPage() {
               </p>
             </Section>
 
-            <Section title="3. User Data & Uploads">
+            <Section title="3. User data & uploads">
               <p>By uploading data to Wardrove, you represent and warrant that:</p>
-              <ul className="list-disc pl-4 space-y-1 mt-1.5">
+              <ul className="list-disc pl-6 sm:pl-8 space-y-3 mt-4 marker:text-wax-red">
                 <li>You have the legal right to collect and share the data you upload.</li>
                 <li>The data was collected in compliance with all applicable local, national, and international laws.</li>
                 <li>The data does not contain personally identifiable information (PII) beyond what is publicly broadcast by wireless devices.</li>
@@ -45,7 +52,7 @@ export function TermsPage() {
               </ul>
             </Section>
 
-            <Section title="4. Data License">
+            <Section title="4. Data license">
               <p>
                 By uploading data to the Service, you grant Wardrove a non-exclusive, worldwide, royalty-free license
                 to store, process, aggregate, display, and distribute the uploaded data as part of the Service.
@@ -53,9 +60,9 @@ export function TermsPage() {
               </p>
             </Section>
 
-            <Section title="5. Acceptable Use">
+            <Section title="5. Acceptable use">
               <p>You agree NOT to:</p>
-              <ul className="list-disc pl-4 space-y-1 mt-1.5">
+              <ul className="list-disc pl-6 sm:pl-8 space-y-3 mt-4 marker:text-wax-red">
                 <li>Upload falsified, fabricated, or intentionally misleading data.</li>
                 <li>Use the Service to facilitate unauthorized access to any network or device.</li>
                 <li>Attempt to exploit, disrupt, or overload the Service infrastructure.</li>
@@ -71,19 +78,19 @@ export function TermsPage() {
 
             <Section title="7. Disclaimer">
               <p>
-                The Service is provided "AS IS" without warranty. Wardriving legality varies by jurisdiction.
+                The Service is provided &quot;AS IS&quot; without warranty. Wardriving legality varies by jurisdiction.
                 You are solely responsible for ensuring your data collection activities comply with applicable laws.
               </p>
             </Section>
 
-            <Section title="8. Open Source">
+            <Section title="8. Open source">
               <p>
                 Wardrove is open-source software (MIT License). These Terms apply to this specific instance,
                 not to the software itself. Self-hosted instances may have their own terms.
               </p>
             </Section>
           </div>
-        </div>
+        </article>
       </div>
     </div>
   )
@@ -91,9 +98,11 @@ export function TermsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div>
-      <h2 className="text-[14px] font-display font-bold text-gold/80 mb-1.5">{title}</h2>
-      <div className="space-y-1.5">{children}</div>
-    </div>
+    <section className="border-b border-black/15 pb-10 last:border-0 last:pb-0">
+      <h2 className="font-display text-lg font-bold text-gold-tarnish mb-4 text-center sm:text-left leading-loose">
+        {title}
+      </h2>
+      <div className="space-y-3">{children}</div>
+    </section>
   )
 }

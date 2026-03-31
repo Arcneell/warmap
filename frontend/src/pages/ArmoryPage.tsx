@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { useBtDevices, useCellTowers } from '@/api/hooks'
-import { DataTable } from '@/components/ui/DataTable'
-import { Bluetooth, Radio, Search } from 'lucide-react'
+import { Bluetooth, Radio, Search, ChevronLeft, ChevronRight } from 'lucide-react'
 import { formatNumber, timeAgo } from '@/lib/format'
 import type { BtDevice, CellTower } from '@/api/types'
 
@@ -17,95 +16,58 @@ export function ArmoryPage() {
   const { data: btData, loading: btLoading } = useBtDevices(btPage * 50, 50, btSearch)
   const { data: cellData, loading: cellLoading } = useCellTowers(cellPage * 50, 50, cellRadio)
 
-  const btColumns = [
-    { key: 'name', label: 'Device', render: (r: BtDevice) => (
-      <div>
-        <div className={`font-semibold text-[13px] ${r.name ? 'text-primary' : 'text-muted italic'}`}>
-          {r.name || '<unknown>'}
-        </div>
-        <div className="font-mono text-[11px] text-muted">{r.mac}</div>
-      </div>
-    )},
-    { key: 'type', label: 'Type', render: (r: BtDevice) => (
-      <span className={`inline-block px-1.5 py-0.5 rounded text-[11px] font-mono font-bold ${
-        r.device_type === 'BLE' ? 'bg-xp/8 text-xp' : 'bg-bt/8 text-bt'
-      }`}>
-        {r.device_type}
-      </span>
-    )},
-    { key: 'rssi', label: 'Signal', render: (r: BtDevice) => (
-      <span className="font-mono text-[12px] text-secondary">{r.rssi ? `${r.rssi} dBm` : '—'}</span>
-    )},
-    { key: 'coords', label: 'Location', className: 'hidden sm:table-cell', render: (r: BtDevice) => (
-      <span className="font-mono text-[11px] text-muted">
-        {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}
-      </span>
-    )},
-    { key: 'seen', label: 'Last Seen', render: (r: BtDevice) => (
-      <span className="text-[12px] text-muted">{timeAgo(r.last_seen)}</span>
-    )},
-  ]
-
-  const cellColumns = [
-    { key: 'radio', label: 'Radio', render: (r: CellTower) => (
-      <span className="inline-block px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-cell/8 text-cell">
-        {r.radio}
-      </span>
-    )},
-    { key: 'identity', label: 'Identity', render: (r: CellTower) => (
-      <div>
-        <div className="font-mono text-[12px] text-primary">MCC {r.mcc} / MNC {r.mnc}</div>
-        <div className="font-mono text-[11px] text-muted">LAC {r.lac} / CID {r.cid}</div>
-      </div>
-    )},
-    { key: 'rssi', label: 'Signal', render: (r: CellTower) => (
-      <span className="font-mono text-[12px] text-secondary">{r.rssi ? `${r.rssi} dBm` : '—'}</span>
-    )},
-    { key: 'coords', label: 'Location', className: 'hidden sm:table-cell', render: (r: CellTower) => (
-      <span className="font-mono text-[11px] text-muted">
-        {r.latitude.toFixed(4)}, {r.longitude.toFixed(4)}
-      </span>
-    )},
-    { key: 'seen', label: 'Last Seen', render: (r: CellTower) => (
-      <span className="text-[12px] text-muted">{timeAgo(r.last_seen)}</span>
-    )},
-  ]
-
   const radios = ['', 'GSM', 'LTE', 'WCDMA', 'CDMA', 'NR']
 
-  return (
-    <div className="flex-1 flex flex-col overflow-hidden">
-      <div className="px-3 sm:px-6 pt-4 pb-3 flex-shrink-0">
-        <h1 className="font-display text-xl sm:text-2xl font-bold text-gold mb-0.5">The Armory</h1>
-        <p className="text-[13px] text-secondary">Your collection of captured devices and towers</p>
+  const btRows = btData?.results ?? []
+  const cellRows = cellData?.results ?? []
+  const btTotalPages = Math.ceil((btData?.total ?? 0) / 50)
+  const cellTotalPages = Math.ceil((cellData?.total ?? 0) / 50)
+  const loading = tab === 'bluetooth' ? btLoading : cellLoading
+  const page = tab === 'bluetooth' ? btPage : cellPage
+  const totalPages = tab === 'bluetooth' ? btTotalPages : cellTotalPages
+  const setPage = tab === 'bluetooth' ? setBtPage : setCellPage
 
-        <div className="flex items-center gap-2 mt-3 flex-wrap">
-          <div className="flex gap-0.5 parchment rounded-lg p-0.5">
-            <TabBtn active={tab === 'bluetooth'} onClick={() => setTab('bluetooth')} icon={<Bluetooth size={12} />} label="Bluetooth" count={btData?.total} />
-            <TabBtn active={tab === 'cell'} onClick={() => setTab('cell')} icon={<Radio size={12} />} label="Cell Towers" count={cellData?.total} />
+  return (
+    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+      <div className="shrink-0 px-8 sm:px-12 lg:px-16 pt-12 pb-10 space-y-10">
+        <header className="text-center max-w-2xl mx-auto space-y-6">
+          <h1 className="font-display text-3xl sm:text-4xl font-bold text-wax-red tracking-wide leading-loose border-b border-black/30 pb-8">
+            The Armory
+          </h1>
+          <p className="text-sm sm:text-base text-sepia font-sans leading-loose">
+            Ledger of captured gear and chalked towers — one ruled line per entry, guild-book style.
+          </p>
+        </header>
+
+        <div className="flex flex-col lg:flex-row gap-8 lg:items-end lg:justify-between max-w-5xl mx-auto w-full">
+          <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+            <TabSeal active={tab === 'bluetooth'} onClick={() => setTab('bluetooth')} icon={<Bluetooth size={18} strokeWidth={1.75} />} label="Bluetooth" count={btData?.total} />
+            <TabSeal active={tab === 'cell'} onClick={() => setTab('cell')} icon={<Radio size={18} strokeWidth={1.75} />} label="Cell" count={cellData?.total} />
           </div>
 
           {tab === 'bluetooth' && (
-            <div className="relative">
-              <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+            <div className="relative border-2 border-ink bg-[#fdf8ed] max-w-md mx-auto lg:mx-0 w-full">
+              <Search size={18} strokeWidth={1.75} className="absolute left-5 top-1/2 -translate-y-1/2 text-sepia pointer-events-none" />
               <input
                 value={btSearch}
                 onChange={(e) => { setBtSearch(e.target.value); setBtPage(0) }}
-                placeholder="Search devices..."
-                className="pl-7 pr-3 py-1.5 bg-surface border border-border rounded-lg text-[12px] font-mono text-primary placeholder:text-muted focus:border-gold/40 focus:outline-none transition-colors"
+                placeholder="Search by name or address…"
+                className="w-full pl-14 pr-5 py-4 bg-transparent text-sm font-mono text-ink placeholder:text-muted focus:outline-none leading-loose"
               />
             </div>
           )}
 
           {tab === 'cell' && (
-            <div className="flex gap-0.5 flex-wrap">
+            <div className="flex flex-wrap gap-3 justify-center lg:justify-end">
               {radios.map((r) => (
                 <button
-                  key={r}
+                  key={r || 'all'}
+                  type="button"
                   onClick={() => { setCellRadio(r); setCellPage(0) }}
-                  className={`px-2 py-1 rounded-md text-[11px] font-mono font-bold transition-all ${
-                    cellRadio === r ? 'bg-cell/12 text-cell border border-cell/25' : 'text-muted hover:text-primary border border-transparent'
+                  className={`px-5 py-3 border-2 text-xs font-mono font-bold transition-all leading-loose ${
+                    cellRadio === r ? 'border-ink bg-[#ebe4d0] text-cell' : 'border-transparent text-muted hover:text-ink border-dashed hover:border-ink'
                   }`}
+                  style={cellRadio === r ? { boxShadow: '2px 2px 0 0 #1a1a1a' } : undefined}
                 >
                   {r || 'All'}
                 </button>
@@ -115,28 +77,59 @@ export function ArmoryPage() {
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden px-3 sm:px-6 pb-3 sm:pb-6">
-        <div className="h-full parchment rounded-xl overflow-hidden flex flex-col">
-          {tab === 'bluetooth' ? (
-            <DataTable
-              columns={btColumns}
-              data={btData?.results ?? []}
-              loading={btLoading}
-              emptyMessage="No Bluetooth devices found yet. Upload some captures!"
-              page={btPage}
-              totalPages={Math.ceil((btData?.total ?? 0) / 50)}
-              onPageChange={setBtPage}
-            />
+      <div className="flex-1 min-h-0 overflow-hidden px-8 sm:px-12 lg:px-16 pb-12 sm:pb-16">
+        <div className="rulebook-frame h-full min-h-[240px] flex flex-col bg-parchment overflow-hidden">
+          {loading ? (
+            <div className="flex-1 flex flex-col items-center justify-center gap-6 p-12 text-sepia">
+              <div className="w-8 h-8 border-2 border-ink border-t-transparent animate-spin" />
+              <p className="font-display text-sm tracking-wide leading-loose">Opening the folio…</p>
+            </div>
+          ) : tab === 'bluetooth' ? (
+            btRows.length === 0 ? (
+              <EmptyLedger message="No Bluetooth devices yet. Upload some captures!" />
+            ) : (
+              <LedgerList>
+                {btRows.map((r) => (
+                  <BtLedgerRow key={`${r.mac}-${r.last_seen}`} row={r} />
+                ))}
+              </LedgerList>
+            )
           ) : (
-            <DataTable
-              columns={cellColumns}
-              data={cellData?.results ?? []}
-              loading={cellLoading}
-              emptyMessage="No cell towers found yet. Upload some captures!"
-              page={cellPage}
-              totalPages={Math.ceil((cellData?.total ?? 0) / 50)}
-              onPageChange={setCellPage}
-            />
+            cellRows.length === 0 ? (
+              <EmptyLedger message="No cell towers found yet." />
+            ) : (
+              <LedgerList>
+                {cellRows.map((r) => (
+                  <CellLedgerRow key={`${r.mcc}-${r.mnc}-${r.lac}-${r.cid}`} row={r} />
+                ))}
+              </LedgerList>
+            )
+          )}
+
+          {totalPages > 1 && !loading && (
+            <footer className="shrink-0 flex items-center justify-center gap-6 py-6 px-8 border-t-2 border-ink bg-[#ebe4d0]/90">
+              <button
+                type="button"
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+                className="p-2 border-2 border-transparent text-sepia hover:text-ink hover:border-dashed hover:border-ink disabled:opacity-30 transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft size={22} strokeWidth={1.75} />
+              </button>
+              <span className="text-sm font-mono text-sepia tabular-nums leading-loose">
+                Folio {page + 1} of {totalPages}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= totalPages - 1}
+                className="p-2 border-2 border-transparent text-sepia hover:text-ink hover:border-dashed hover:border-ink disabled:opacity-30 transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight size={22} strokeWidth={1.75} />
+              </button>
+            </footer>
           )}
         </div>
       </div>
@@ -144,18 +137,99 @@ export function ArmoryPage() {
   )
 }
 
-function TabBtn({ active, onClick, icon, label, count }: {
-  active: boolean; onClick: () => void; icon: React.ReactNode; label: string; count?: number
+function TabSeal({ active, onClick, icon, label, count }: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+  count?: number
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
-      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-md text-[12px] font-semibold transition-all ${
-        active ? 'bg-gold/12 text-gold' : 'text-secondary hover:text-primary'
+      className={`flex items-center gap-3 px-6 py-4 border-2 text-sm font-display font-semibold transition-colors leading-loose ${
+        active ? 'border-ink bg-[#ebe4d0] text-wax-red' : 'border-dashed border-transparent text-sepia hover:text-ink hover:border-ink bg-parchment/60'
       }`}
+      style={active ? { boxShadow: '3px 3px 0 0 #1a1a1a' } : undefined}
     >
-      {icon} {label}
-      {count != null && <span className="font-mono text-[11px] opacity-50">{formatNumber(count)}</span>}
+      {icon}
+      {label}
+      {count != null && <span className="font-mono text-xs opacity-70 tabular-nums">({formatNumber(count)})</span>}
     </button>
+  )
+}
+
+function LedgerList({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="flex-1 overflow-y-auto scroll-pb-4">
+      <ul className="list-none divide-y divide-black/15">
+        {children}
+      </ul>
+    </div>
+  )
+}
+
+function EmptyLedger({ message }: { message: string }) {
+  return (
+    <div className="flex-1 flex items-center justify-center p-16 text-center">
+      <p className="text-sepia text-sm sm:text-base font-sans max-w-md leading-loose">{message}</p>
+    </div>
+  )
+}
+
+function BtLedgerRow({ row }: { row: BtDevice }) {
+  return (
+    <li className="ledger-line px-8 sm:px-12 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-center">
+      <div className="lg:col-span-5 space-y-3 min-w-0">
+        <p className={`font-display font-semibold text-base leading-relaxed ${row.name ? 'text-ink' : 'text-muted italic'}`}>
+          {row.name || '<unknown>'}
+        </p>
+        <p className="font-mono text-xs sm:text-sm text-sepia break-all leading-loose">{row.mac}</p>
+      </div>
+      <div className="lg:col-span-2 flex lg:justify-center">
+        <span
+          className={`inline-flex items-center px-4 py-2 border-2 border-ink text-xs font-mono font-bold leading-loose ${
+            row.device_type === 'BLE' ? 'bg-parchment text-ink' : 'bg-[#ebe4d0] text-bt'
+          }`}
+        >
+          {row.device_type}
+        </span>
+      </div>
+      <div className="lg:col-span-2 font-mono text-sm text-sepia tabular-nums leading-loose">
+        {row.rssi != null ? `${row.rssi} dBm` : '—'}
+      </div>
+      <div className="lg:col-span-3 space-y-2 text-sm leading-loose">
+        <p className="font-mono text-xs text-muted break-words">
+          {row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}
+        </p>
+        <p className="text-sepia">{timeAgo(row.last_seen)}</p>
+      </div>
+    </li>
+  )
+}
+
+function CellLedgerRow({ row }: { row: CellTower }) {
+  return (
+    <li className="ledger-line px-8 sm:px-12 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-start lg:items-center">
+      <div className="lg:col-span-2 flex lg:justify-start">
+        <span className="inline-flex items-center px-4 py-2 border-2 border-ink text-xs font-mono font-bold bg-parchment text-cell leading-loose">
+          {row.radio}
+        </span>
+      </div>
+      <div className="lg:col-span-5 space-y-2 font-mono text-sm leading-loose min-w-0">
+        <p className="text-ink">MCC {row.mcc} / MNC {row.mnc}</p>
+        <p className="text-sepia">LAC {row.lac} / CID {row.cid}</p>
+      </div>
+      <div className="lg:col-span-2 font-mono text-sm text-sepia tabular-nums">
+        {row.rssi != null ? `${row.rssi} dBm` : '—'}
+      </div>
+      <div className="lg:col-span-3 space-y-2 text-sm leading-loose">
+        <p className="font-mono text-xs text-muted break-words">
+          {row.latitude.toFixed(4)}, {row.longitude.toFixed(4)}
+        </p>
+        <p className="text-sepia">{timeAgo(row.last_seen)}</p>
+      </div>
+    </li>
   )
 }
