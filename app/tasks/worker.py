@@ -4,10 +4,14 @@ Run with: python -m arq app.tasks.worker.WorkerSettings
 """
 
 import logging
+from datetime import datetime, timedelta, timezone
 
 from arq.connections import RedisSettings
+from sqlalchemy import update
 
 from app.config import get_settings
+from app.database import async_session
+from app.models.transaction import UploadTransaction
 from app.tasks.process_upload import process_upload_task
 from app.tasks.monthly_rollup import monthly_stats_rollup
 
@@ -30,6 +34,24 @@ def parse_redis_url(url: str) -> RedisSettings:
 async def on_startup(ctx: dict):
     """Called when the worker starts."""
     logger.info("Wardrove ARQ worker starting up")
+    stale_cutoff = datetime.now(timezone.utc) - timedelta(minutes=20)
+    async with async_session() as db:
+        result = await db.execute(
+            update(UploadTransaction)
+            .where(
+                UploadTransaction.status.in_(("pending", "parsing", "trilaterating", "indexing")),
+                UploadTransaction.uploaded_at < stale_cutoff,
+            )
+            .values(
+                status="error",
+                status_message="Marked stale after worker restart/timeout",
+                completed_at=datetime.now(timezone.utc),
+            )
+            .execution_options(synchronize_session=False)
+        )
+        await db.commit()
+    if result.rowcount:
+        logger.warning("Recovered %s stale upload transaction(s)", result.rowcount)
 
 
 async def on_shutdown(ctx: dict):

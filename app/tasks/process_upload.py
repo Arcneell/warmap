@@ -8,6 +8,7 @@ Pipeline:
   5. Publish final status via Redis pub/sub
 """
 
+import asyncio
 import json
 from datetime import datetime, timezone
 
@@ -142,6 +143,18 @@ async def process_upload_task(ctx: dict, transaction_id: int, filename: str):
                     xp_earned=transaction.xp_earned,
                 )
 
+            except asyncio.CancelledError:
+                transaction.status = "error"
+                transaction.status_message = "Processing cancelled or timed out"
+                transaction.completed_at = datetime.now(timezone.utc)
+                await db.commit()
+                await _publish_status(
+                    redis_text,
+                    transaction_id,
+                    "error",
+                    "Processing cancelled or timed out",
+                )
+                raise
             except Exception as e:
                 transaction.status = "error"
                 transaction.status_message = str(e)[:500]
