@@ -45,6 +45,7 @@ async def upload_files(
     redis_bin = await get_redis_binary()
     arq = await _get_arq_pool()
     responses = []
+    jobs_to_enqueue: list[tuple[int, str]] = []
 
     for file in files:
         lower_name = (file.filename or "").lower()
@@ -84,19 +85,23 @@ async def upload_files(
             json.dumps({"status": "pending", "message": "Queued for processing"}),
         )
 
-        # Enqueue ARQ job
-        await arq.enqueue_job(
-            "process_upload_task",
-            transaction.id,
-            file.filename or "unknown",
-            _job_id=f"upload-{transaction.id}",
-        )
+        jobs_to_enqueue.append((transaction.id, file.filename or "unknown"))
 
         responses.append(
             UploadResponse(transaction_id=transaction.id, status="pending")
         )
 
     await db.commit()
+
+    # Enqueue jobs only after transaction rows are committed to avoid
+    # race conditions where worker starts before DB row exists.
+    for tx_id, tx_filename in jobs_to_enqueue:
+        await arq.enqueue_job(
+            "process_upload_task",
+            tx_id,
+            tx_filename,
+            _job_id=f"upload-{tx_id}",
+        )
     return responses
 
 
@@ -212,4 +217,25 @@ async def upload_history(
         .limit(limit)
         .offset(offset)
     )
-    return result.scalars().all()
+    rows = result.scalars().all()
+
+    active_statuses = ("pending", "parsing", "trilaterating", "indexing")
+    active_result = await db.execute(
+        select(UploadTransaction.id)
+        .where(
+            UploadTransaction.user_id == user.id,
+            UploadTransaction.status.in_(active_statuses),
+        )
+        .order_by(UploadTransaction.uploaded_at.asc(), UploadTransaction.id.asc())
+    )
+    active_ids = [row[0] for row in active_result.all()]
+    queue_positions = {tx_id: idx + 1 for idx, tx_id in enumerate(active_ids)}
+    queue_total = len(active_ids)
+
+    response = []
+    for tx in rows:
+        item = UploadHistoryItem.model_validate(tx).model_dump()
+        item["queue_position"] = queue_positions.get(tx.id)
+        item["queue_total"] = queue_total if tx.id in queue_positions else None
+        response.append(item)
+    return response

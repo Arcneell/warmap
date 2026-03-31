@@ -135,6 +135,9 @@ export function initUpload() {
                             newCount += data.new_networks || 0;
                             updatedCount += data.updated_networks || 0;
                             xpCount += data.xp_earned || 0;
+                            loadStats();
+                            loadGeoJSON(false);
+                            loadProfile();
                         }
                         break;
                     }
@@ -147,5 +150,8 @@ export function initUpload() {
             showToast(`${errorCount} upload(s) en erreur`, 'error');
         }
         showToast(`Upload fini: ${newCount} nouveaux, ${updatedCount} updates, +${xpCount} XP`, 'success');
+        loadStats();
+        loadGeoJSON(false);
+        loadProfile();
     }
 }

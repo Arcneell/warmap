@@ -9,7 +9,9 @@ function statusBadge(status) {
     const s = (status || '').toLowerCase();
     if (s === 'done') return '<span class="upload-badge done">Done</span>';
     if (s === 'error') return '<span class="upload-badge error">Error</span>';
-    if (s === 'processing') return '<span class="upload-badge processing">Processing</span>';
+    if (['processing', 'parsing', 'trilaterating', 'indexing'].includes(s)) {
+        return '<span class="upload-badge processing">Processing</span>';
+    }
     return '<span class="upload-badge pending">Pending</span>';
 }
 
@@ -30,7 +32,7 @@ export async function loadUploads() {
             return;
         }
         const rows = await res.json();
-        const hasActiveJobs = rows.some((r) => ['pending', 'processing'].includes((r.status || '').toLowerCase()));
+        const hasActiveJobs = rows.some((r) => ['pending', 'processing', 'parsing', 'trilaterating', 'indexing'].includes((r.status || '').toLowerCase()));
         if (headerBadge) {
             headerBadge.style.display = hasActiveJobs ? '' : 'none';
             headerBadge.classList.toggle('active', hasActiveJobs);
@@ -41,6 +43,10 @@ export async function loadUploads() {
         }
         tbody.innerHTML = rows.map((r) => {
             const processed = (r.new_networks || 0) + (r.updated_networks || 0);
+            const queueInfo = r.queue_position && r.queue_total
+                ? `Queue ${r.queue_position}/${r.queue_total}`
+                : '';
+            const statusMessage = [r.status_message || '', queueInfo].filter(Boolean).join(' - ');
             return `<tr>
                 <td>${escapeHtml(r.filename || '--')}</td>
                 <td>${statusBadge(r.status)}</td>
@@ -49,7 +55,7 @@ export async function loadUploads() {
                 <td>${r.xp_earned || 0}</td>
                 <td>${fmtDate(r.uploaded_at)}</td>
                 <td>${fmtDate(r.completed_at)}</td>
-                <td>${escapeHtml(r.status_message || '--')}</td>
+                <td>${escapeHtml(statusMessage || '--')}</td>
             </tr>`;
         }).join('');
         const pageInfo = $('uploadsPageInfo');

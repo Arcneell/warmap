@@ -12,6 +12,7 @@ let popupFeatures = [], popupIndex = 0, activePopup = null;
 let encChart = null;
 let isInitialLoad = true;
 let loadAbortController = null;
+let liveRefreshTimer = null;
 
 const BT_COLOR = '#8b5cf6';
 const CELL_COLOR = '#3b82f6';
@@ -296,5 +297,19 @@ async function loadCellLayer() {
 }
 
 export function onMapEnter() {
-    if (map) map.invalidateSize();
+    if (!map) return;
+    map.invalidateSize();
+    if (liveRefreshTimer) clearInterval(liveRefreshTimer);
+    liveRefreshTimer = setInterval(() => {
+        loadGeoJSON(false);
+        if (getState('showBtLayer')) loadBtLayer();
+        if (getState('showCellLayer')) loadCellLayer();
+    }, 5000);
+}
+
+export function onMapLeave() {
+    if (liveRefreshTimer) {
+        clearInterval(liveRefreshTimer);
+        liveRefreshTimer = null;
+    }
 }

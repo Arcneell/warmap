@@ -29,8 +29,9 @@ async def process_observations(
     bt_count = 0
     ble_count = 0
     cell_count = 0
-    new_count = 0
-    updated_count = 0
+    new_wifi_count = 0
+    new_bt_like_count = 0
+    updated_wifi_count = 0
     skipped_count = 0
     gps_points = 0
 
@@ -63,9 +64,13 @@ async def process_observations(
             continue
 
         if result == "new":
-            new_count += 1
+            if obs.network_type == "wifi":
+                new_wifi_count += 1
+            elif obs.network_type in ("bt", "ble"):
+                new_bt_like_count += 1
         elif result == "updated":
-            updated_count += 1
+            if obs.network_type == "wifi":
+                updated_wifi_count += 1
         else:
             skipped_count += 1
 
@@ -79,8 +84,10 @@ async def process_observations(
     if networks_to_retrilaterate:
         await _retrilaterate_networks(db, networks_to_retrilaterate)
 
-    # Calculate XP (new WiFi networks only)
-    xp_earned = (new_count * XP_PER_IMPORT) + XP_PER_SESSION
+    # XP rule:
+    # - WiFi = 1 XP per new AP
+    # - Bluetooth/BLE = 0.5 XP per new device (integer XP storage => pair-based)
+    xp_earned = XP_PER_SESSION + (new_wifi_count * XP_PER_IMPORT) + (new_bt_like_count // 2)
 
     # Update transaction
     transaction.wifi_count = wifi_count
@@ -88,8 +95,9 @@ async def process_observations(
     transaction.ble_count = ble_count
     transaction.cell_count = cell_count
     transaction.gps_points = gps_points
-    transaction.new_networks = new_count
-    transaction.updated_networks = updated_count
+    # Keep AP counters WiFi-centric in UI/stat cards.
+    transaction.new_networks = new_wifi_count
+    transaction.updated_networks = updated_wifi_count
     transaction.skipped_networks = skipped_count
     transaction.xp_earned = xp_earned
     transaction.status = "done"

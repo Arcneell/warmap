@@ -9,7 +9,7 @@
 
 import { initAuth, setupAuthListeners } from './auth.js';
 import { registerRoute, navigate, initRouter } from './router.js';
-import { initMap, onMapEnter, loadGeoJSON } from './pages/map.js';
+import { initMap, onMapEnter, onMapLeave, loadGeoJSON } from './pages/map.js';
 import { loadProfile, loadStats, setupProfileListeners } from './pages/sidebar.js';
 import { initBluetooth, loadBluetooth } from './pages/bluetooth.js';
 import { initCell, loadCellTowers } from './pages/cell.js';
@@ -34,6 +34,7 @@ registerRoute('#map', {
     nav: $('navMap'),
     page: $('map'),
     onEnter: onMapEnter,
+    onLeave: onMapLeave,
 });
 registerRoute('#bluetooth', {
     nav: $('navBt'),

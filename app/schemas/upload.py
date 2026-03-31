@@ -46,5 +46,7 @@ class UploadHistoryItem(BaseModel):
     xp_earned: int
     uploaded_at: datetime
     completed_at: datetime | None
+    queue_position: int | None = None
+    queue_total: int | None = None
 
     model_config = {"from_attributes": True}
