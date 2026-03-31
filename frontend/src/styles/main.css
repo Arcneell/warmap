@@ -289,6 +289,43 @@ body {
     box-shadow: var(--shadow-lg);
 }
 
+.map-search {
+    position: absolute;
+    top: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+}
+
+.map-search-input {
+    width: 320px;
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-card);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    box-shadow: var(--shadow-lg);
+    outline: none;
+    transition: border-color 0.15s;
+}
+
+.map-search-input:focus {
+    border-color: var(--accent);
+}
+
+.map-ctrl-btn.mine-active,
+.map-ctrl-btn.layer-toggle.active {
+    background: var(--accent);
+    color: #fff;
+}
+
+.map-ctrl-sep {
+    width: 1px;
+    background: var(--border);
+    margin: 2px 2px;
+}
+
 .map-ctrl-btn {
     display: flex;
     align-items: center;
@@ -829,6 +866,87 @@ body {
     color: var(--text-secondary);
     padding: 40px 14px !important;
     font-size: 0.9rem;
+}
+
+/* OAuth buttons */
+.oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    transition: all 0.15s;
+}
+
+.oauth-btn.github {
+    background: #24292e;
+    color: #fff;
+    border-color: #24292e;
+}
+
+.oauth-btn.github:hover {
+    background: #2f363d;
+}
+
+/* Header auth */
+.header-avatar {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+}
+
+/* Token list */
+.token-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+}
+
+.token-item:last-child {
+    border-bottom: none;
+}
+
+.token-name {
+    font-weight: 500;
+}
+
+.token-meta {
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+}
+
+.token-revoke {
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 0.8rem;
+    background: none;
+    border: none;
+    padding: 4px 8px;
+}
+
+.token-revoke:hover {
+    text-decoration: underline;
+}
+
+.token-revoked {
+    color: var(--text-secondary);
+    text-decoration: line-through;
 }
 
 /* Responsive */

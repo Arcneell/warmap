@@ -1,4 +1,11 @@
 __pycache__/
 *.pyc
 data/wardrove.db
+data/*.db
 .env
+*.egg-info/
+dist/
+build/
+node_modules/
+frontend/dist/
+.vite/

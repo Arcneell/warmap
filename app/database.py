@@ -1,55 +1,42 @@
-import aiosqlite
-import os
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "wardrove.db")
+from app.config import get_settings
 
-SCHEMA = """
-CREATE TABLE IF NOT EXISTS profile (
-    id INTEGER PRIMARY KEY CHECK (id = 1),
-    pseudo TEXT NOT NULL,
-    xp INTEGER DEFAULT 0,
-    created_at TEXT NOT NULL
-);
+settings = get_settings()
 
-CREATE TABLE IF NOT EXISTS sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    filename TEXT NOT NULL,
-    uploaded_at TEXT NOT NULL,
-    ap_imported INTEGER DEFAULT 0,
-    ap_updated INTEGER DEFAULT 0,
-    ap_skipped INTEGER DEFAULT 0,
-    xp_earned INTEGER DEFAULT 0
-);
+import ssl as _ssl
 
-CREATE TABLE IF NOT EXISTS access_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bssid TEXT UNIQUE NOT NULL,
-    ssid TEXT DEFAULT '',
-    encryption TEXT DEFAULT 'Unknown',
-    channel INTEGER DEFAULT 0,
-    rssi INTEGER DEFAULT -100,
-    latitude REAL DEFAULT 0.0,
-    longitude REAL DEFAULT 0.0,
-    first_seen TEXT NOT NULL,
-    last_seen TEXT NOT NULL,
-    device_type TEXT DEFAULT 'WIFI',
-    session_id INTEGER,
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
-);
+engine = create_async_engine(
+    settings.database_url,
+    echo=False,
+    pool_size=20,
+    max_overflow=10,
+    pool_pre_ping=True,
+    connect_args={"ssl": False},  # No SSL for internal Docker network
+)
 
-CREATE INDEX IF NOT EXISTS idx_bssid ON access_points(bssid);
-CREATE INDEX IF NOT EXISTS idx_encryption ON access_points(encryption);
-CREATE INDEX IF NOT EXISTS idx_coords ON access_points(latitude, longitude);
-"""
+async_session = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-# XP rewards
+
+async def get_db() -> AsyncSession:
+    """FastAPI dependency that yields a database session."""
+    async with async_session() as session:
+        yield session
+
+
+async def init_db():
+    """Create all tables. Used during startup or by Alembic."""
+    from app.models.base import Base
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+
+# --- XP System (migrated from old database.py) ---
+
 XP_PER_IMPORT = 1
 XP_PER_UPDATE = 0
 XP_PER_SESSION = 5
 
-# Level thresholds: level N requires N*(N-1)*10 total XP
-# Lvl 2: 20, Lvl 5: 200, Lvl 10: 900, Lvl 20: 3800, Lvl 50: 24500, Lvl 100: 99000
-# → Mapping all of La Réunion (~100k unique APs) ≈ level 100
 RANK_TITLES = {
     1: "Script Kiddie",
     3: "Packet Sniffer",
@@ -84,44 +71,3 @@ def rank_title(level: int) -> str:
         if level >= threshold:
             title = name
     return title
-
-
-async def get_db() -> aiosqlite.Connection:
-    db = await aiosqlite.connect(DB_PATH)
-    db.row_factory = aiosqlite.Row
-    await db.execute("PRAGMA journal_mode=WAL")
-    await db.execute("PRAGMA foreign_keys=ON")
-    return db
-
-
-async def _column_exists(db, table: str, column: str) -> bool:
-    cursor = await db.execute(f"PRAGMA table_info({table})")
-    cols = await cursor.fetchall()
-    return any(c["name"] == column for c in cols)
-
-
-async def _migrate(db):
-    """Add missing columns to existing tables so old DBs survive upgrades."""
-    if not await _column_exists(db, "sessions", "xp_earned"):
-        await db.execute("ALTER TABLE sessions ADD COLUMN xp_earned INTEGER DEFAULT 0")
-
-    # Recalculate XP: only WiFi APs count
-    cursor = await db.execute(
-        "SELECT COUNT(*) as wifi_count FROM access_points WHERE device_type = 'WIFI'"
-    )
-    wifi_count = (await cursor.fetchone())["wifi_count"]
-    cursor = await db.execute("SELECT COUNT(*) as sess FROM sessions")
-    sess_count = (await cursor.fetchone())["sess"]
-    correct_xp = (wifi_count * XP_PER_IMPORT) + (sess_count * XP_PER_SESSION)
-    await db.execute("UPDATE profile SET xp = ? WHERE id = 1", (correct_xp,))
-
-
-async def init_db():
-    os.makedirs(os.path.dirname(DB_PATH), exist_ok=True)
-    db = await get_db()
-    try:
-        await db.executescript(SCHEMA)
-        await _migrate(db)
-        await db.commit()
-    finally:
-        await db.close()

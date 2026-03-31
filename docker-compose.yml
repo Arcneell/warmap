@@ -1,14 +1,70 @@
-version: "3.8"
-
 services:
-  wardrove:
+  app:
     build: .
-    container_name: wardrove
+    container_name: wardrove-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     ports:
       - "8847:8000"
     volumes:
       - ./data:/app/data
-    restart: unless-stopped
     environment:
       - TZ=Indian/Reunion
-    network_mode: bridge
+      - DATABASE_URL=postgresql+asyncpg://wardrove:${DB_PASSWORD:-wardrove}@postgres:5432/wardrove
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - APP_URL=${APP_URL:-http://localhost:8847}
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+    restart: unless-stopped
+
+  worker:
+    build: .
+    container_name: wardrove-worker
+    command: ["python", "-m", "arq", "app.tasks.worker.WorkerSettings"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      - TZ=Indian/Reunion
+      - DATABASE_URL=postgresql+asyncpg://wardrove:${DB_PASSWORD:-wardrove}@postgres:5432/wardrove
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+    restart: unless-stopped
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: wardrove-db
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=wardrove
+      - POSTGRES_USER=wardrove
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-wardrove}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wardrove"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: wardrove-redis
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  redisdata:

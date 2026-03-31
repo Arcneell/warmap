@@ -1,221 +1,131 @@
-<p align="center">
-  <img src="app/static/favicon.svg" alt="Wardrove" width="80" height="80">
-</p>
+# Wardrove
 
-<h1 align="center">Wardrove</h1>
+Self-hosted wardriving map + dashboard (FastAPI + PostgreSQL/PostGIS + Redis + frontend Vite).
 
-<p align="center">
-  <strong>Self-hosted wardriving map & dashboard</strong><br>
-  <em>Your personal WiGLE, on your own infrastructure.</em>
-</p>
+## Fonctionnalités principales
 
-<p align="center">
-  <a href="https://www.docker.com/"><img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white" alt="Docker"></a>
-  <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white" alt="Python"></a>
-  <a href="https://fastapi.tiangolo.com"><img src="https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-</p>
+- Import asynchrone de captures (`.wigle.csv`, Kismet, KML/KMZ, NetStumbler, archives)
+- Carte WiFi + couches Bluetooth et Cell towers
+- Stats avancées (leaderboard, canaux, chiffrement, fabricants, pays, top SSID)
+- Authentification OAuth **GitHub uniquement**
+- Export WiGLE CSV / KML / GeoJSON
+- Système XP, niveaux, badges, groupes
 
----
+## Stack actuelle
 
-## About
+- Backend: Python 3.12, FastAPI, SQLAlchemy async, Alembic, ARQ
+- Base de donnees: PostgreSQL + PostGIS
+- Cache/queue: Redis
+- Frontend: Vite (vanilla JS), build dans `app/static`
+- Infra: Docker Compose (`app`, `worker`, `postgres`, `redis`)
 
-Wardrove is a lightweight, self-hosted alternative to [WiGLE.net](https://wigle.net). Import your wardriving captures, visualize them on an interactive map with heatmap support, track your progress with an RPG-style leveling system, and keep full ownership of your data.
-
-Built for the **M5Stack Cardputer** running [M5PORKCHOP](https://github.com/recessburton/M5PORKCHOP) firmware (WARHOG mode), but compatible with any tool that exports **WiGLE CSV v1.6**.
-
----
-
-## Features
-
-**Map & Visualization**
-- Interactive map with individual markers color-coded by encryption type
-- Cluster view when zoomed out, individual AP precision when zoomed in
-- Heatmap overlay toggle with RSSI-based signal intensity
-- Click overlapping APs to browse through them with prev/next navigation
-
-**Data Management**
-- Multi-file drag & drop upload (`.wigle.csv`)
-- Smart deduplication by BSSID (updates only if signal is better or data is newer)
-- WiGLE CSV v1.6 export for re-import into WiGLE.net or other tools
-- Dedicated Bluetooth/BLE device page with search
-
-**Dashboard & Stats**
-- Total unique networks counter
-- Encryption type breakdown (donut chart)
-- Top 10 most common SSIDs
-- Upload session history with mini bar chart
-
-**Gamification**
-- XP earned per unique AP discovered
-- 100 levels from *Script Kiddie* to *Omniscient Eye*
-- Rank progression designed around mapping an entire island
-
-**Infrastructure**
-- Single Docker container (~120MB)
-- SQLite database with automatic migrations
-- No external dependencies, no API keys, no cloud
-- REST API for scripting and automation
-
----
-
-## Quick Start
+## Demarrage rapide
 
 ```bash
 git clone https://github.com/Arcneell/warmap.git
 cd warmap
+cp .env.example .env
 docker compose up -d --build
 ```
 
-Open **http://localhost:8847** — enter your pseudo and start importing.
+Application: `http://localhost:8847`
 
----
+## OAuth GitHub (obligatoire pour login)
 
-## Usage
-
-### Web UI
-
-Click **Upload** in the header, drag & drop one or more `.wigle.csv` files. The map and stats update automatically.
-
-### CLI / Automation
-
-```bash
-# Upload files
-curl -X POST http://localhost:8847/api/upload \
-  -F "files=@capture1.wigle.csv" \
-  -F "files=@capture2.wigle.csv"
-
-# Export all data as WiGLE CSV
-curl http://localhost:8847/api/export -o wardrove_export.wigle.csv
-
-# Get stats
-curl http://localhost:8847/api/stats
-```
-
-### Auto-push from M5Stack Cardputer
+1. Cree une OAuth App sur [GitHub Developers](https://github.com/settings/developers)
+2. Configure:
+   - Homepage URL: `http://localhost:8847`
+   - Authorization callback URL: `http://localhost:8847/api/v1/auth/callback/github`
+3. Renseigne dans `.env`:
+   - `GITHUB_CLIENT_ID=...`
+   - `GITHUB_CLIENT_SECRET=...`
+   - `APP_URL=http://localhost:8847` (ou ton URL publique)
+4. Redemarre:
 
 ```bash
-#!/bin/bash
-FILE=$(ls -t *.wigle.csv | head -1)
-curl -X POST http://YOUR_SERVER:8847/api/upload -F "files=@$FILE"
+docker compose up -d --build
 ```
 
----
+## Variables d'environnement essentielles
 
-## Map Controls
+Voir `.env.example`:
 
-| Feature | Description |
-|---------|-------------|
-| Clusters | APs are grouped when zoomed out for performance |
-| Individual markers | At zoom 17+, every AP is shown at its real position |
-| Overlapping APs | Click to open a popup with arrow navigation (1/N) |
-| Heatmap toggle | Switch between marker view and signal density heatmap |
+- `DB_PASSWORD`
+- `SECRET_KEY`
+- `APP_URL`
+- `GITHUB_CLIENT_ID`
+- `GITHUB_CLIENT_SECRET`
 
-### Marker Colors
+## API (base: `/api/v1`)
 
-| Color | Encryption |
-|-------|------------|
-| Green | WPA3 |
-| Blue | WPA2 |
-| Orange | WPA |
-| Red | WEP |
-| Gray | Open / Unknown |
+### Auth
 
----
+- `GET /auth/login/github`
+- `GET /auth/callback/github`
+- `POST /auth/exchange`
+- `POST /auth/refresh`
+- `POST /auth/logout`
+- `GET /auth/me`
+- `GET /auth/tokens`
+- `POST /auth/tokens`
+- `DELETE /auth/tokens/{token_id}`
 
-## Ranks & XP
+### Upload / Queue
 
-Each unique AP discovered earns 1 XP. Designed so that mapping ~100,000 networks reaches level 100.
+- `POST /upload` (multipart, champ `files`)
+- `GET /upload/status/{transaction_id}`
+- `GET /upload/status/{transaction_id}/stream`
+- `GET /queue/status`
+- `GET /queue/health`
 
-| Level | XP | Rank |
-|-------|----|------|
-| 1 | 0 | Script Kiddie |
-| 5 | 200 | Signal Hunter |
-| 12 | 1,320 | RF Scout |
-| 22 | 4,620 | Airspace Mapper |
-| 40 | 15,600 | Frequency Ghost |
-| 70 | 48,300 | Phantom Scanner |
-| 100 | 99,000 | Omniscient Eye |
+### Reseaux
 
----
+- `GET /networks/wifi`
+- `GET /networks/wifi/{bssid}`
+- `GET /networks/wifi/geojson`
+- `GET /networks/wifi/count`
+- `GET /networks/bt`
+- `GET /networks/bt/{mac}`
+- `GET /networks/bt/geojson`
+- `GET /networks/cell`
+- `GET /networks/cell/{tower_id}`
+- `GET /networks/cell/geojson`
 
-## API Reference
+### Stats / Profil / Groupes / Export / Geocode
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| `POST` | `/api/upload` | Upload `.wigle.csv` files (multipart, field: `files`) |
-| `GET` | `/api/accesspoints` | List APs with optional filters |
-| `GET` | `/api/accesspoints/geojson` | GeoJSON for map rendering |
-| `GET` | `/api/export` | Download all data as WiGLE CSV |
-| `GET` | `/api/bluetooth` | List BT/BLE devices |
-| `GET` | `/api/stats` | Global statistics |
-| `GET` | `/api/sessions` | Upload session history |
-| `GET` | `/api/profile` | User profile and XP |
-| `POST` | `/api/profile` | Create profile (`{"pseudo": "name"}`) |
-| `DELETE` | `/api/accesspoints/{id}` | Delete an AP |
+- `GET /stats/leaderboard`
+- `GET /stats/channels`
+- `GET /stats/encryption`
+- `GET /stats/manufacturers`
+- `GET /stats/countries`
+- `GET /stats/top-ssids`
+- `GET /profile/{user_id}`
+- `GET /profile/{user_id}/badges`
+- `GET /profile/{user_id}/badge.svg`
+- `GET /groups/{group_id}`
+- `POST /groups/{group_id}/join`
+- `DELETE /groups/{group_id}/leave`
+- `GET /groups/{group_id}/leaderboard`
+- `GET /export/wigle-csv`
+- `GET /export/kml`
+- `GET /export/kml/{transaction_id}`
+- `GET /export/geojson`
+- `GET /geocode/reverse`
 
----
+## Frontend (dev)
 
-## Configuration
-
-```yaml
-# docker-compose.yml
-services:
-  wardrove:
-    ports:
-      - "8847:8000"       # Host port
-    environment:
-      - TZ=Indian/Reunion # Timezone
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-Data is stored in `./data/wardrove.db` (SQLite, Docker volume). Persists across rebuilds.
+Build prod (genere `app/static`):
 
----
-
-## Stack
-
-| Component | Technology |
-|-----------|------------|
-| Backend | Python 3.12, FastAPI, aiosqlite |
-| Frontend | Vanilla HTML/CSS/JS (no build step) |
-| Map | Leaflet.js, MarkerCluster, Leaflet.heat |
-| Charts | Chart.js |
-| Database | SQLite |
-| Container | Docker (~120MB image) |
-
----
-
-## Project Structure
-
-```
-wardrove/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── LICENSE
-├── app/
-│   ├── main.py
-│   ├── database.py
-│   ├── parser.py
-│   ├── routes/
-│   │   ├── upload.py
-│   │   ├── accesspoints.py
-│   │   └── stats.py
-│   └── static/
-│       ├── index.html
-│       ├── style.css
-│       ├── app.js
-│       └── favicon.svg
-└── data/
-    └── wardrove.db
+```bash
+npm run build
 ```
 
----
+## Licence
 
-## License
-
-[MIT](LICENSE)
-
----
-
-<p align="center"><em>No cloud. No tracking. Just you, your Cardputer, and the open road.</em></p>
+MIT (`LICENSE`)
