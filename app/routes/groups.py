@@ -139,26 +139,40 @@ async def group_leaderboard(
     if not result.scalar_one_or_none():
         raise HTTPException(status_code=404, detail="Group not found")
 
+    # Subqueries for network counts (avoids N+1)
+    wifi_sub = (
+        select(WifiNetwork.discovered_by, func.count(WifiNetwork.id).label("cnt"))
+        .group_by(WifiNetwork.discovered_by)
+        .subquery()
+    )
+    bt_sub = (
+        select(BtNetwork.discovered_by, func.count(BtNetwork.id).label("cnt"))
+        .group_by(BtNetwork.discovered_by)
+        .subquery()
+    )
+    cell_sub = (
+        select(CellTower.discovered_by, func.count(CellTower.id).label("cnt"))
+        .group_by(CellTower.discovered_by)
+        .subquery()
+    )
+
     members_result = await db.execute(
-        select(User)
+        select(
+            User,
+            func.coalesce(wifi_sub.c.cnt, 0).label("wifi_count"),
+            func.coalesce(bt_sub.c.cnt, 0).label("bt_count"),
+            func.coalesce(cell_sub.c.cnt, 0).label("cell_count"),
+        )
         .join(GroupMember, GroupMember.user_id == User.id)
+        .outerjoin(wifi_sub, wifi_sub.c.discovered_by == User.id)
+        .outerjoin(bt_sub, bt_sub.c.discovered_by == User.id)
+        .outerjoin(cell_sub, cell_sub.c.discovered_by == User.id)
         .where(GroupMember.group_id == group_id)
         .order_by(User.xp.desc())
     )
-    users = members_result.scalars().all()
 
     leaderboard = []
-    for i, u in enumerate(users):
-        wifi = await db.scalar(
-            select(func.count(WifiNetwork.id)).where(WifiNetwork.discovered_by == u.id)
-        ) or 0
-        bt = await db.scalar(
-            select(func.count(BtNetwork.id)).where(BtNetwork.discovered_by == u.id)
-        ) or 0
-        cell = await db.scalar(
-            select(func.count(CellTower.id)).where(CellTower.discovered_by == u.id)
-        ) or 0
-
+    for i, (u, wifi, bt, cell) in enumerate(members_result.all()):
         leaderboard.append({
             "rank": i + 1,
             "user_id": u.id,

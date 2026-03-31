@@ -53,7 +53,30 @@ async def public_profile(
     user = result.scalar_one_or_none()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return await get_user_stats(db, user)
+    stats = await get_user_stats(db, user)
+    badges = await get_user_badges(db, user.id)
+    stats["badges"] = badges
+    stats["avatar_url"] = user.avatar_url
+    stats["created_at"] = user.created_at.isoformat() if user.created_at else None
+    return stats
+
+
+@router.get("/u/{username}")
+async def public_profile_by_username(
+    username: str,
+    db: AsyncSession = Depends(get_db),
+):
+    """Get a user's public profile by username."""
+    result = await db.execute(select(User).where(User.username == username))
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    stats = await get_user_stats(db, user)
+    badges = await get_user_badges(db, user.id)
+    stats["badges"] = badges
+    stats["avatar_url"] = user.avatar_url
+    stats["created_at"] = user.created_at.isoformat() if user.created_at else None
+    return stats
 
 
 @router.get("/{user_id}/badges")
@@ -83,6 +106,14 @@ async def user_badge_svg(
     badges = await get_user_badges(db, user_id)
     earned_count = sum(1 for b in badges if b["earned"])
 
+    # Handle max level display
+    if stats["xp_needed"] == 0:
+        progress_width = 72
+        progress_text = "MAX LEVEL"
+    else:
+        progress_width = max(1, int(72 * stats['xp_progress'] / stats['xp_needed']))
+        progress_text = f"{stats['xp_progress']}/{stats['xp_needed']} XP"
+
     svg = f'''<svg xmlns="http://www.w3.org/2000/svg" width="400" height="120" viewBox="0 0 400 120">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -101,8 +132,8 @@ async def user_badge_svg(
   <text x="332" y="50" fill="#0d9373" font-family="monospace" font-size="28" font-weight="bold" text-anchor="middle">{stats["level"]}</text>
   <text x="332" y="68" fill="#6b7280" font-family="monospace" font-size="10" text-anchor="middle">LEVEL</text>
   <rect x="296" y="78" width="72" height="4" rx="2" fill="#374151"/>
-  <rect x="296" y="78" width="{max(1, int(72 * stats['xp_progress'] / max(1, stats['xp_needed'])))}" height="4" rx="2" fill="#0d9373"/>
-  <text x="332" y="96" fill="#4b5563" font-family="monospace" font-size="8" text-anchor="middle">{stats["xp_progress"]}/{stats["xp_needed"]} XP</text>
+  <rect x="296" y="78" width="{progress_width}" height="4" rx="2" fill="#0d9373"/>
+  <text x="332" y="96" fill="#4b5563" font-family="monospace" font-size="8" text-anchor="middle">{progress_text}</text>
 </svg>'''
 
     return Response(content=svg, media_type="image/svg+xml",

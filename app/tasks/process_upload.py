@@ -96,7 +96,11 @@ async def process_upload_task(ctx: dict, transaction_id: int, filename: str):
                 await db.commit()
                 await _publish_status(redis_text, transaction_id, "parsing", f"Parsing {filename}...")
 
-                format_id, observations = parse_file(filename, file_content)
+                # Offload CPU-bound parsing to a thread pool so the
+                # async event loop stays free for other jobs
+                format_id, observations = await asyncio.to_thread(
+                    parse_file, filename, file_content
+                )
                 transaction.file_format = format_id
 
                 if not observations:

@@ -1,83 +1,104 @@
-# Wardrove — Self-hosted Wardriving Map & Dashboard
+# Wardrove — Self-hosted Wardriving Platform with RPG Progression
 
 ## Vision
 
-Remplacement self-hosted léger de WiGLE pour visualiser et archiver ses données de wardriving. Tourne dans un seul container Docker. Pensé pour recevoir les `.wigle.csv` d'un M5Stack Cardputer (firmware M5PORKCHOP, mode WARHOG) mais compatible avec tout outil qui exporte en WiGLE CSV v1.6.
+Self-hosted wardriving platform that turns data collection into an RPG. Upload captures from any wardriving tool, visualize on an interactive map, earn XP, level up, unlock badges, and compete on leaderboards. Designed for M5Stack Cardputer (WARHOG firmware) but compatible with any WiGLE CSV-compatible tool.
 
-## Stack technique
+## Stack
 
-- **Backend** : Python 3.12 + FastAPI
-- **Base de données** : SQLite (fichier monté en volume Docker pour persistance)
-- **Frontend** : HTML/CSS/JS vanilla — Leaflet.js + OpenStreetMap pour la carte
-- **Conteneurisation** : Un seul Dockerfile, un docker-compose.yml
-- **Port par défaut** : 8847
+| Layer | Technology |
+|-------|------------|
+| Backend | Python 3.12, FastAPI, SQLAlchemy async (asyncpg) |
+| Database | PostgreSQL 16 + PostGIS |
+| Cache/Queue | Redis 7 |
+| Worker | ARQ (async Redis queue), 2 replicas, 10 concurrent jobs each |
+| Frontend | Vite 6, vanilla ES6 modules, Leaflet 1.9, Chart.js 4 |
+| Infra | Docker Compose (4 services: app, worker, postgres, redis) |
 
-## Fonctionnalités v1
+## Core Features
 
-### 1. Upload de fichiers CSV
+### 1. Multi-Format File Import
+- Drag & drop or API upload (`POST /api/v1/upload`)
+- Auto-detect format: WiGLE CSV, Kismet (.netxml, .csv), KML/KMZ, NetStumbler (.ns1, text, wiscan), consolidated.db (iOS), DStumbler, MacStumbler
+- Async processing via ARQ workers with Redis queue
+- Bulk DB operations (batch pre-fetch + batch insert) for performance
+- CPU-bound parsing offloaded to thread pool
+- Real-time status via SSE or polling
 
-- Interface web avec drag & drop ou bouton d'upload
-- Accepte les fichiers `.wigle.csv` (format WiGLE CSV v1.6)
-- Endpoint API REST `POST /api/upload` pour automatiser depuis un script (ex: curl)
-- Parsing du header WiGLE (2 premières lignes = métadonnées, ligne 3 = noms de colonnes, reste = données)
-- Dédoublonnage par BSSID : si un AP existe déjà, on met à jour si le nouveau signal (RSSI) est meilleur ou si de nouvelles infos sont disponibles
-- Retour JSON avec le nombre d'AP importés / mis à jour / ignorés
+### 2. Interactive Map
+- Leaflet with MarkerCluster and heatmap layers
+- 3 network types: WiFi (color-coded by encryption), Bluetooth (BT/BLE), Cell towers
+- Viewport-based tile loading, live refresh every 5s
+- Search by SSID/BSSID, filter by encryption type
+- "Mine only" toggle for authenticated users
 
-### 2. Carte interactive
+### 3. RPG Progression System
+- **XP**: +1 per new WiFi network, +0.5 per BT device, +5 per upload session
+- **100 levels** with exponential curve: `level * (level-1) * (level+20) * 5`
+- **13 rank titles**: Script Kiddie (1) -> Packet Sniffer (3) -> Signal Hunter (5) -> ... -> Radio God (85) -> Omniscient Eye (100)
+- **42 badges** in 7 categories with 5-8 tiers each
+- Tiered visual rarity: common (gray) -> uncommon (green) -> rare (blue) -> epic (purple) -> legendary (gold) -> mythic (red glow)
+- Animated XP bars, badge glow effects, level ring SVG
 
-- Carte pleine page avec Leaflet.js + tuiles OpenStreetMap
-- Marker clustering (plugin Leaflet MarkerCluster) pour les performances avec beaucoup d'AP
-- Couleur des markers par type de chiffrement :
-  - 🟢 Vert = WPA3
-  - 🔵 Bleu = WPA2
-  - 🟠 Orange = WPA
-  - 🔴 Rouge = WEP
-  - ⚫ Noir = Open (pas de chiffrement)
-- Popup au clic sur un marker : SSID, BSSID, canal, RSSI, type de chiffrement, date de première/dernière observation
-- Filtres sur la carte : par type de chiffrement, par SSID (recherche texte)
+### 4. Social Features
+- Public player profiles with avatar, rank, badges showcase
+- Profile lookup by user ID or username
+- Global leaderboard (sort by XP or WiFi discoveries)
+- Clickable profiles from leaderboard
+- Groups with per-group leaderboards
+- Embeddable SVG badge card per user
 
-### 3. Dashboard / Stats
+### 5. Stats & Analytics
+- Global: encryption distribution, top SSIDs, channel distribution
+- Advanced: manufacturers (OUI lookup), countries (MCC), top SSIDs
+- Per-user: discoveries, upload history, XP progression
+- All stats cached in Redis (5-minute TTL)
 
-- Panneau latéral ou section au-dessus de la carte avec :
-  - Nombre total d'AP uniques
-  - Répartition par type de chiffrement (bar chart ou donut chart, utiliser Chart.js)
-  - Top 10 des SSID les plus fréquents
-  - Nombre de sessions d'upload
-  - Nombre d'AP par session (historique)
-  - Date de la dernière session
+### 6. Data Export
+- WiGLE CSV, KML, GeoJSON formats
+- Per-upload or global export
+- API token auth for automated workflows
 
-### 4. API REST
+### 7. Trilateration
+- RSSI-weighted centroid positioning
+- Improves accuracy with multiple observations of the same network
+- Batch recalculation after uploads
 
-Endpoints :
-
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| `POST` | `/api/upload` | Upload d'un fichier .wigle.csv, retourne stats d'import |
-| `GET` | `/api/accesspoints` | Liste tous les AP (avec pagination, filtres optionnels) |
-| `GET` | `/api/accesspoints/geojson` | Export GeoJSON de tous les AP (pour Leaflet) |
-| `GET` | `/api/stats` | Stats globales (compteurs, répartition chiffrement) |
-| `GET` | `/api/sessions` | Liste des sessions d'upload |
-| `DELETE` | `/api/accesspoints/{id}` | Supprimer un AP |
-
-## Structure du projet
+## Architecture
 
 ```
-wardrove/
-├── docker-compose.yml
-├── Dockerfile
-├── requirements.txt
-├── app/
-│   ├── main.py              # FastAPI app, montage des routes et du static
-│   ├── database.py           # Init SQLite, modèles, helpers
-│   ├── parser.py             # Parsing du format WiGLE CSV v1.6
-│   ├── routes/
-│   │   ├── upload.py         # POST /api/upload
-│   │   ├── accesspoints.py   # GET /api/accesspoints, geojson, DELETE
-│   │   ├── stats.py          # GET /api/stats, /api/sessions
-│   └── static/
-│       ├── index.html        # SPA unique — carte + dashboard + upload
-│       ├── style.css
-│       └── app.js
-├── data/
-│   └── wardrove.db           # SQLite (monté en volume Docker)
+Client (Browser)
+  |
+  v
+FastAPI App (port 8847)
+  ├── Static files (Vite build)
+  ├── REST API (/api/v1/*)
+  ├── OAuth (GitHub)
+  └── SSE (upload status)
+  |
+  v
+Redis
+  ├── File storage (upload content, TTL 4h)
+  ├── Job queue (ARQ)
+  ├── Stats cache (5min TTL)
+  ├── Rate limiting
+  └── Pub/Sub (status updates)
+  |
+  v
+ARQ Workers (x2, 10 jobs each)
+  ├── Parse file (thread pool)
+  ├── Bulk insert/update networks
+  ├── Trilaterate positions
+  ├── Update XP + evaluate badges
+  └── Invalidate stats cache
+  |
+  v
+PostgreSQL + PostGIS
+  ├── users, api_tokens
+  ├── wifi_networks, bt_networks, cell_towers
+  ├── wifi_observations
+  ├── upload_transactions
+  ├── badge_definitions, user_badges
+  ├── groups, group_members
+  └── monthly_stats
 ```

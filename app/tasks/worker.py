@@ -66,7 +66,7 @@ class WorkerSettings:
     on_shutdown = on_shutdown
     redis_settings = parse_redis_url(settings.redis_url)
     max_jobs = settings.worker_max_jobs
-    job_timeout = 600  # 10 minutes per job
+    job_timeout = 1800  # 30 minutes per job (large CSV files)
     health_check_interval = 30
     retry_jobs = True
     max_tries = 3

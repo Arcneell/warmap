@@ -15,6 +15,7 @@
 <header class="header">
     <div style="display:flex;align-items:center;gap:12px;">
         <button class="hamburger" id="hamburgerBtn">&#9776;</button>
+        <img src="/favicon.svg" class="logo-icon" alt="" width="28" height="28">
         <div class="logo">wardrove<span>.db</span></div>
         <nav class="header-nav">
             <button class="nav-tab active" id="navMap">Map</button>
@@ -228,7 +229,18 @@
         <div class="bt-header">
             <h2 style="margin:0;font-size:1.2rem;">My Stats</h2>
         </div>
-        <div class="bt-table-wrap" id="myStatsContent">
+        <div class="bt-table-wrap rpg-page" id="myStatsContent">
+            <div class="card"><div class="card-title">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- Public profile page -->
+    <div id="profilePage" class="bt-page" style="display:none;">
+        <div class="bt-header">
+            <button class="btn btn-secondary" onclick="window.history.back()">Back</button>
+            <h2 style="margin:0;font-size:1.2rem;">Player Profile</h2>
+        </div>
+        <div class="bt-table-wrap rpg-page" id="profilePageContent">
             <div class="card"><div class="card-title">Loading...</div></div>
         </div>
     </div>

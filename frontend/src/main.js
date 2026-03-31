@@ -16,6 +16,7 @@ import { initCell, loadCellTowers } from './pages/cell.js';
 import { initLeaderboard, loadLeaderboard } from './pages/leaderboard.js';
 import { loadAdvancedStats } from './pages/advanced-stats.js';
 import { loadMyStats } from './pages/my-stats.js';
+import { loadProfile as loadProfilePage } from './pages/profile.js';
 import { onUploadsEnter, onUploadsLeave } from './pages/uploads.js';
 import { initUpload } from './components/upload.js';
 import { $ } from './utils.js';
@@ -66,6 +67,11 @@ registerRoute('#uploads', {
     page: $('uploadsPage'),
     onEnter: onUploadsEnter,
     onLeave: onUploadsLeave,
+});
+registerRoute('#profile', {
+    nav: null,
+    page: $('profilePage'),
+    onEnter: loadProfilePage,
 });
 
 // Header nav buttons

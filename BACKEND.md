@@ -1,158 +1,222 @@
-# Spécifications techniques — Backend
+# Backend Specifications
 
-## Base de données SQLite
+## Database (PostgreSQL + PostGIS)
 
-### Table `access_points`
+### Core Tables
 
+#### `users`
 ```sql
-CREATE TABLE access_points (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    bssid TEXT UNIQUE NOT NULL,          -- MAC address (clé de dédoublonnage)
-    ssid TEXT DEFAULT '',                 -- nom du réseau
-    encryption TEXT DEFAULT 'Unknown',    -- WPA3, WPA2, WPA, WEP, Open, Unknown
-    channel INTEGER DEFAULT 0,
-    rssi INTEGER DEFAULT -100,            -- meilleur signal observé
-    latitude REAL DEFAULT 0.0,
-    longitude REAL DEFAULT 0.0,
-    first_seen TEXT NOT NULL,             -- ISO 8601
-    last_seen TEXT NOT NULL,              -- ISO 8601
-    device_type TEXT DEFAULT 'WIFI',      -- WIFI, BT, BLE, CELL
-    session_id INTEGER,
-    FOREIGN KEY (session_id) REFERENCES sessions(id)
-);
-
-CREATE INDEX idx_bssid ON access_points(bssid);
-CREATE INDEX idx_encryption ON access_points(encryption);
-CREATE INDEX idx_coords ON access_points(latitude, longitude);
+id SERIAL PRIMARY KEY,
+username VARCHAR(64) UNIQUE NOT NULL,
+email VARCHAR(255) UNIQUE,
+xp BIGINT DEFAULT 0,
+avatar_url TEXT,
+oauth_provider VARCHAR(32),
+oauth_id VARCHAR(128),
+is_admin BOOLEAN DEFAULT FALSE,
+is_active BOOLEAN DEFAULT TRUE,
+created_at TIMESTAMPTZ DEFAULT NOW(),
+last_login TIMESTAMPTZ
 ```
 
-### Table `sessions`
-
+#### `wifi_networks`
 ```sql
-CREATE TABLE sessions (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    filename TEXT NOT NULL,
-    uploaded_at TEXT NOT NULL,            -- ISO 8601
-    ap_imported INTEGER DEFAULT 0,
-    ap_updated INTEGER DEFAULT 0,
-    ap_skipped INTEGER DEFAULT 0
-);
+id SERIAL PRIMARY KEY,
+bssid VARCHAR(17) UNIQUE NOT NULL,    -- MAC address (dedup key)
+ssid TEXT DEFAULT '',
+encryption VARCHAR(16) DEFAULT 'Unknown',  -- WPA3, WPA2, WPA, WEP, Open, Unknown
+channel INTEGER DEFAULT 0,
+frequency INTEGER DEFAULT 0,
+rssi INTEGER DEFAULT -100,            -- best observed signal (dBm)
+latitude DOUBLE PRECISION,
+longitude DOUBLE PRECISION,
+altitude DOUBLE PRECISION,
+accuracy DOUBLE PRECISION,
+first_seen TIMESTAMPTZ NOT NULL,
+last_seen TIMESTAMPTZ NOT NULL,
+seen_count INTEGER DEFAULT 1,
+discovered_by INTEGER REFERENCES users(id),
+last_updated_by INTEGER REFERENCES users(id)
 ```
 
-## Parsing du WiGLE CSV v1.6
-
-Le format est le suivant :
-
+#### `wifi_observations`
+```sql
+id BIGSERIAL PRIMARY KEY,
+network_id INTEGER REFERENCES wifi_networks(id),
+transaction_id INTEGER REFERENCES upload_transactions(id),
+user_id INTEGER REFERENCES users(id),
+rssi INTEGER,
+latitude DOUBLE PRECISION,
+longitude DOUBLE PRECISION,
+altitude DOUBLE PRECISION,
+accuracy DOUBLE PRECISION,
+seen_at TIMESTAMPTZ
 ```
-WigleWifi-1.6,appRelease=...,model=...,release=...,device=...,display=...,board=...,brand=...
-MAC,SSID,AuthMode,FirstSeen,Channel,RSSI,CurrentLatitude,CurrentLongitude,AltitudeMeters,AccuracyMeters,Type
-aa:bb:cc:dd:ee:ff,MonReseau,[WPA2-PSK-CCMP][ESS],2024-01-15 14:30:00,6,-45,48.8566,2.3522,35.0,10.0,WIFI
-```
+Used for trilateration: multiple observations of the same network allow RSSI-weighted centroid positioning.
 
-### Règles de parsing
-
-- **Ligne 1** : header WiGLE avec métadonnées de l'appareil → ignorer ou stocker dans la session
-- **Ligne 2** : noms des colonnes → utiliser pour mapper les champs
-- **Lignes 3+** : données AP, une par ligne
-
-### Mapping des colonnes
-
-| Colonne CSV | Champ DB | Transformation |
-|-------------|----------|----------------|
-| `MAC` | `bssid` | Uppercase, trim |
-| `SSID` | `ssid` | Trim |
-| `AuthMode` | `encryption` | Parser `[WPA2-...]` → catégorie simplifiée (voir ci-dessous) |
-| `FirstSeen` | `first_seen` / `last_seen` | Parse datetime |
-| `Channel` | `channel` | Integer |
-| `RSSI` | `rssi` | Integer (négatif, en dBm) |
-| `CurrentLatitude` | `latitude` | Float |
-| `CurrentLongitude` | `longitude` | Float |
-| `Type` | `device_type` | WIFI, BT, BLE, CELL |
-
-### Normalisation du chiffrement (`AuthMode`)
-
-Le champ AuthMode WiGLE ressemble à `[WPA2-PSK-CCMP][RSN-PSK-CCMP][ESS]` ou `[WEP][ESS]` ou juste `[ESS]`.
-
-Logique de classification (par priorité) :
-
-1. Contient `WPA3` ou `SAE` → `WPA3`
-2. Contient `WPA2` ou `RSN` → `WPA2`
-3. Contient `WPA` (mais pas WPA2/WPA3) → `WPA`
-4. Contient `WEP` → `WEP`
-5. Ne contient aucun des précédents (ou juste `[ESS]`, `[IBSS]`) → `Open`
-6. Champ vide ou non parsable → `Unknown`
-
-### Logique de dédoublonnage
-
-À l'import, pour chaque AP dans le CSV :
-
-1. Chercher en base par `bssid`
-2. Si **n'existe pas** → INSERT (nouveau)
-3. Si **existe** :
-   - Mettre à jour `last_seen` si la date du CSV est plus récente
-   - Mettre à jour `rssi` si le nouveau signal est meilleur (plus proche de 0)
-   - Mettre à jour `latitude`/`longitude` seulement si le nouveau RSSI est meilleur (position plus fiable)
-   - Mettre à jour `ssid` si l'ancien était vide et le nouveau ne l'est pas
-   - Mettre à jour `encryption` si l'ancien était `Unknown`
-   - Compter comme "updated"
-4. Si les coordonnées sont `0.0, 0.0` → ignorer cet AP (pas de fix GPS)
-
-## API REST — Détails
-
-### `POST /api/upload`
-
-- Content-Type: `multipart/form-data`
-- Champ: `file` (le .wigle.csv)
-- Réponse 200 :
-```json
-{
-  "session_id": 12,
-  "filename": "20240115_WARHOG.wigle.csv",
-  "imported": 142,
-  "updated": 38,
-  "skipped": 5
-}
+#### `bt_networks`
+```sql
+id SERIAL PRIMARY KEY,
+mac VARCHAR(17) UNIQUE NOT NULL,
+name TEXT DEFAULT '',
+device_type VARCHAR(4) DEFAULT 'BT',  -- BT or BLE
+rssi INTEGER DEFAULT -100,
+latitude DOUBLE PRECISION,
+longitude DOUBLE PRECISION,
+first_seen TIMESTAMPTZ,
+last_seen TIMESTAMPTZ,
+seen_count INTEGER DEFAULT 1,
+discovered_by INTEGER REFERENCES users(id)
 ```
 
-### `GET /api/accesspoints`
-
-- Query params optionnels : `encryption=WPA2`, `ssid=MonRes`, `limit=100`, `offset=0`
-- Réponse : tableau JSON d'AP
-
-### `GET /api/accesspoints/geojson`
-
-- Query params optionnels : mêmes filtres
-- Réponse : FeatureCollection GeoJSON standard, chaque Feature = un AP avec properties (ssid, encryption, rssi, channel, etc.)
-- C'est cet endpoint que Leaflet consomme pour afficher les markers
-
-### `GET /api/stats`
-
-- Réponse :
-```json
-{
-  "total_aps": 3847,
-  "by_encryption": {
-    "WPA3": 120,
-    "WPA2": 2890,
-    "WPA": 340,
-    "WEP": 42,
-    "Open": 410,
-    "Unknown": 45
-  },
-  "top_ssids": [
-    {"ssid": "Freebox-XXXX", "count": 12},
-    ...
-  ],
-  "total_sessions": 8,
-  "last_session": "2024-06-15T18:30:00"
-}
+#### `cell_towers`
+```sql
+id SERIAL PRIMARY KEY,
+radio VARCHAR(8),           -- GSM, LTE, WCDMA, CDMA, NR
+mcc INTEGER, mnc INTEGER, lac INTEGER, cid INTEGER,
+rssi INTEGER DEFAULT -100,
+latitude DOUBLE PRECISION,
+longitude DOUBLE PRECISION,
+first_seen TIMESTAMPTZ,
+last_seen TIMESTAMPTZ,
+seen_count INTEGER DEFAULT 1,
+discovered_by INTEGER REFERENCES users(id),
+UNIQUE (radio, mcc, mnc, lac, cid)
 ```
 
-### `GET /api/sessions`
+#### `upload_transactions`
+```sql
+id SERIAL PRIMARY KEY,
+user_id INTEGER REFERENCES users(id),
+filename TEXT NOT NULL,
+file_size INTEGER,
+file_format VARCHAR(32),
+status VARCHAR(16) DEFAULT 'pending',  -- pending -> parsing -> trilaterating -> done | error
+status_message TEXT,
+wifi_count INTEGER DEFAULT 0,
+bt_count INTEGER DEFAULT 0,
+ble_count INTEGER DEFAULT 0,
+cell_count INTEGER DEFAULT 0,
+gps_points INTEGER DEFAULT 0,
+new_networks INTEGER DEFAULT 0,
+updated_networks INTEGER DEFAULT 0,
+skipped_networks INTEGER DEFAULT 0,
+xp_earned INTEGER DEFAULT 0,
+uploaded_at TIMESTAMPTZ DEFAULT NOW(),
+completed_at TIMESTAMPTZ
+```
 
-- Réponse : tableau de sessions avec stats par session
+#### `badge_definitions`
+```sql
+id SERIAL PRIMARY KEY,
+slug VARCHAR(64) UNIQUE NOT NULL,
+name VARCHAR(128) NOT NULL,
+description TEXT,
+icon_emoji VARCHAR(8),
+category VARCHAR(32),       -- wifi, bluetooth, cell, upload, xp, level, special
+tier INTEGER DEFAULT 1,     -- visual rarity (1=common, 8=mythic)
+criteria_type VARCHAR(32),  -- wifi_count, bt_count, upload_count, xp, level, wep_count, etc.
+criteria_value INTEGER
+```
 
-### `DELETE /api/accesspoints/{id}`
+#### `user_badges`
+```sql
+user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+badge_id INTEGER REFERENCES badge_definitions(id),
+earned_at TIMESTAMPTZ DEFAULT NOW(),
+PRIMARY KEY (user_id, badge_id)
+```
 
-- Supprime un AP par son ID
-- Réponse 204 No Content
+#### `groups`, `group_members`
+Team system with admin/member roles and group-specific leaderboards.
+
+#### `monthly_stats`
+Aggregated per-user monthly stats with rank calculation.
+
+## File Parsing
+
+### Supported Formats
+
+| Format | Extension | Detection |
+|--------|-----------|-----------|
+| WiGLE CSV v1.6 | `.wigle.csv`, `.csv` | Header "WigleWifi" or MAC/SSID columns |
+| Kismet NetXML | `.netxml`, `.kismet.netxml` | XML with `wireless-network` |
+| Kismet CSV | `.kismet.csv` | Semicolon-delimited with Network/BSSID |
+| KML/KMZ | `.kml`, `.kmz` | XML with `kml` namespace |
+| NetStumbler | `.ns1` | Binary NS1 format |
+| NetStumbler Text | `.wiscan`, `.txt` | Tab-separated with MAC addresses |
+| Consolidated.db | `.db` | SQLite with wifilocation/celllocation tables |
+| DStumbler | -- | Key:Value format with BSSID/SSID |
+| MacStumbler | `.plist` | XML or binary plist |
+
+Detection order: extension map -> content inspection -> extension fallback.
+
+### Encryption Classification (AuthMode)
+
+1. Contains `WPA3` or `SAE` -> `WPA3`
+2. Contains `WPA2` or `RSN` -> `WPA2`
+3. Contains `WPA` -> `WPA`
+4. Contains `WEP` -> `WEP`
+5. Contains `[` but none of above -> `Open`
+6. Empty or unparseable -> `Unknown`
+
+### Dedup Logic
+
+Per observation:
+1. Lookup network by BSSID (bulk pre-fetch per batch)
+2. If new -> INSERT network + observation, count as "new"
+3. If exists -> UPDATE metadata if better (RSSI, last_seen, SSID, encryption), INSERT observation, count as "updated" or "skipped"
+4. Skip if lat/lon = 0,0 (no GPS fix)
+
+### Processing Pipeline
+
+```
+File in Redis -> Parse (thread pool) -> Bulk process observations -> Trilaterate -> XP + Badges -> Done
+```
+
+- Batch size: 2000 observations
+- Bulk pre-fetch: all BSSIDs in batch via `WHERE IN (...)` (1 query instead of N)
+- Bulk insert: `db.add_all()` for observations
+- Trilateration: fetch all observations for affected networks in 1 query
+
+## XP & Level System
+
+- `XP_PER_IMPORT = 1` (per new WiFi network)
+- `XP_PER_SESSION = 5` (per upload)
+- BT/BLE: `new_bt_count // 2` XP
+- Level formula: `level * (level-1) * (level+20) * 5`
+- Level 100 (max) requires ~5.94M XP
+
+### Rank Titles
+
+| Level | Rank |
+|-------|------|
+| 1 | Script Kiddie |
+| 3 | Packet Sniffer |
+| 5 | Signal Hunter |
+| 8 | Spectrum Crawler |
+| 12 | RF Scout |
+| 16 | Wave Rider |
+| 22 | Airspace Mapper |
+| 30 | Ether Walker |
+| 40 | Frequency Ghost |
+| 55 | Wardriving Legend |
+| 70 | Phantom Scanner |
+| 85 | Radio God |
+| 100 | Omniscient Eye |
+
+## Worker Configuration
+
+- Queue: ARQ (async Redis queue)
+- Workers: 2 replicas, 10 concurrent jobs each
+- Job timeout: 30 minutes
+- Max retries: 3
+- Stale cleanup: marks transactions >20min old as "error" on worker restart
+- Redis file TTL: 4 hours
+
+## API Authentication
+
+- **OAuth**: GitHub only (state stored in Redis, 5min TTL)
+- **JWT**: 60-minute access token, 30-day refresh token (httpOnly cookie)
+- **API tokens**: bcrypt-hashed, bearer auth for programmatic access
+- **Rate limiting**: 100 req/min (auth), 50 (API token), 20 (anon)

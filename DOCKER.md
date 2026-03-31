@@ -1,73 +1,124 @@
-# Spécifications — Docker & Déploiement
+# Docker & Deployment
 
 ## docker-compose.yml
 
+4 services:
+
+| Service | Image | Purpose |
+|---------|-------|---------|
+| `app` | Custom (Dockerfile) | FastAPI + static files, port 8847 |
+| `worker` | Same image | ARQ worker (2 replicas) |
+| `postgres` | postgis/postgis:16-3.4 | Database |
+| `redis` | redis:7-alpine | Cache + queue + file storage |
+
 ```yaml
-version: "3.8"
-
 services:
-  wardrove:
+  app:
     build: .
-    container_name: wardrove
-    ports:
-      - "8847:8000"
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
+    ports: ["8847:8000"]
+    depends_on: [postgres, redis]
+
+  worker:
+    build: .
+    command: ["python", "-m", "arq", "app.tasks.worker.WorkerSettings"]
+    deploy:
+      replicas: 2
     environment:
-      - TZ=Indian/Reunion
+      - WORKER_MAX_JOBS=10
+    depends_on: [postgres, redis]
+
+  postgres:
+    image: postgis/postgis:16-3.4
+    volumes: [pgdata:/var/lib/postgresql/data]
+
+  redis:
+    image: redis:7-alpine
+    volumes: [redisdata:/data]
 ```
 
-## Dockerfile
+## Environment Variables
 
-- Base image : `python:3.12-slim`
-- Workdir : `/app`
-- Installer les dépendances depuis `requirements.txt`
-- Copier `app/` dans le container
-- Créer `/app/data` pour la DB SQLite
-- Servir avec uvicorn sur le port 8000
-- FastAPI sert les fichiers statiques depuis `app/static/`
+All services share these via `.env`:
 
-## requirements.txt
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `DB_PASSWORD` | `wardrove` | PostgreSQL password |
+| `SECRET_KEY` | `change-me-in-production` | JWT signing key |
+| `APP_URL` | `http://localhost:8847` | Public URL (for OAuth callbacks) |
+| `GITHUB_CLIENT_ID` | -- | GitHub OAuth client ID |
+| `GITHUB_CLIENT_SECRET` | -- | GitHub OAuth secret |
+| `WORKER_MAX_JOBS` | `10` | Concurrent jobs per worker |
+| `TZ` | `Indian/Reunion` | Timezone |
 
-```
-fastapi==0.115.6
-uvicorn==0.34.0
-python-multipart==0.0.20
-aiosqlite==0.20.0
-```
+## Volumes
 
-## Volume
+- `pgdata`: PostgreSQL data (persistent)
+- `redisdata`: Redis AOF (persistent queue/cache)
 
-Le dossier `./data` est monté en volume. Il contient :
-- `wardrove.db` : la base SQLite (créée au premier lancement si absente)
+## Health Checks
 
-## Routes FastAPI — Montage
+- PostgreSQL: `pg_isready -U wardrove` (5s interval, 3 retries)
+- Redis: `redis-cli ping` (5s interval, 3 retries)
+- Worker: ARQ built-in health check (30s interval)
 
-- `app/static/` servi en `StaticFiles` sur `/` (fallback sur `index.html`)
-- Les routes API montées sous `/api/`
-- L'index.html est la SPA, servie pour toute route non-API
+## Database Initialization
 
-## Premier lancement
+On first start, `app/main.py` lifespan:
+1. `Base.metadata.create_all()` creates all tables
+2. `seed_badges()` inserts/updates 42 badge definitions
+3. Ready to accept uploads
 
-Au démarrage, si la DB n'existe pas :
-1. Créer le fichier SQLite
-2. Exécuter les CREATE TABLE
-3. Prêt à recevoir des uploads
+No manual migration needed. Schema changes via SQLAlchemy `create_all` (additive only).
 
-## Usage CLI pour upload automatisé
+## Resource Tuning
+
+### Database Pool
+- `pool_size=30`, `max_overflow=20` (50 max connections)
+- Sized for 2 workers x 10 jobs + app requests
+
+### Worker Scaling
+- Default: 2 replicas, 10 concurrent jobs each = 20 parallel uploads
+- Scale with: `docker compose up -d --scale worker=4`
+- Each worker needs ~100MB RAM + DB connections
+
+### Redis
+- File TTL: 4 hours (large files may process slowly)
+- Stats cache TTL: 5 minutes
+- Max upload size: 100MB (configurable via `UPLOAD_MAX_SIZE_MB`)
+
+## CLI Upload Examples
 
 ```bash
-# Upload un fichier depuis la ligne de commande
-curl -X POST http://localhost:8847/api/upload \
-  -F "file=@20240115_WARHOG.wigle.csv"
+# Upload with API token
+curl -X POST http://localhost:8847/api/v1/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "files=@capture.wigle.csv"
 
-# Réponse JSON
-# {"session_id":1,"filename":"20240115_WARHOG.wigle.csv","imported":142,"updated":38,"skipped":5}
+# Upload multiple files
+curl -X POST http://localhost:8847/api/v1/upload \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -F "files=@scan1.wigle.csv" \
+  -F "files=@scan2.wigle.csv"
 
-# Récupérer les stats
-curl http://localhost:8847/api/stats
+# Check processing status
+curl http://localhost:8847/api/v1/upload/status/42
 
-# Export GeoJSON
-curl http://localhost:8847/api/accesspoints/geojson > export.geojson
+# Queue health
+curl http://localhost:8847/api/v1/queue/health
+
+# Export all data
+curl http://localhost:8847/api/v1/export/geojson > all_networks.geojson
+```
+
+## Logs
+
+```bash
+# All services
+docker compose logs -f
+
+# Worker only
+docker compose logs -f worker
+
+# App only
+docker compose logs -f app
 ```

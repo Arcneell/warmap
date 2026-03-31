@@ -8,14 +8,15 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-  <script type="module" crossorigin src="/assets/index-DplW3dsf.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-A50pU7dE.css">
+  <script type="module" crossorigin src="/assets/index-D9zCsG17.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-BO9O9Clk.css">
 </head>
 <body>
 
 <header class="header">
     <div style="display:flex;align-items:center;gap:12px;">
         <button class="hamburger" id="hamburgerBtn">&#9776;</button>
+        <img src="/favicon.svg" class="logo-icon" alt="" width="28" height="28">
         <div class="logo">wardrove<span>.db</span></div>
         <nav class="header-nav">
             <button class="nav-tab active" id="navMap">Map</button>
@@ -229,7 +230,18 @@
         <div class="bt-header">
             <h2 style="margin:0;font-size:1.2rem;">My Stats</h2>
         </div>
-        <div class="bt-table-wrap" id="myStatsContent">
+        <div class="bt-table-wrap rpg-page" id="myStatsContent">
+            <div class="card"><div class="card-title">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- Public profile page -->
+    <div id="profilePage" class="bt-page" style="display:none;">
+        <div class="bt-header">
+            <button class="btn btn-secondary" onclick="window.history.back()">Back</button>
+            <h2 style="margin:0;font-size:1.2rem;">Player Profile</h2>
+        </div>
+        <div class="bt-table-wrap rpg-page" id="profilePageContent">
             <div class="card"><div class="card-title">Loading...</div></div>
         </div>
     </div>

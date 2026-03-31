@@ -23,7 +23,6 @@ services:
 
   worker:
     build: .
-    container_name: wardrove-worker
     command: ["python", "-m", "arq", "app.tasks.worker.WorkerSettings"]
     depends_on:
       postgres:
@@ -35,6 +34,9 @@ services:
       - DATABASE_URL=postgresql+asyncpg://wardrove:${DB_PASSWORD:-wardrove}@postgres:5432/wardrove
       - REDIS_URL=redis://redis:6379/0
       - SECRET_KEY=${SECRET_KEY:-change-me-in-production}
+      - WORKER_MAX_JOBS=10
+    deploy:
+      replicas: 2
     restart: unless-stopped
 
   postgres:

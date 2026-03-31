@@ -1,25 +1,32 @@
-import { authFetch } from '../api.js';
 import { escapeHtml, $ } from '../utils.js';
 
-export async function loadMyStats() {
-    const root = $('myStatsContent');
-    if (!root) return;
+let currentUserId = null;
+
+export function setProfileUser(userId) {
+    currentUserId = userId;
+}
+
+export async function loadProfile() {
+    const root = $('profilePageContent');
+    if (!root || !currentUserId) {
+        if (root) root.innerHTML = '<div class="bt-empty">User not found</div>';
+        return;
+    }
+
     try {
-        const res = await authFetch('/api/v1/profile');
+        const res = await fetch(`/api/v1/profile/${currentUserId}`);
         if (!res.ok) {
-            root.innerHTML = '<div class="card"><div class="card-title">My Stats</div><div class="bt-empty">Login required</div></div>';
+            root.innerHTML = '<div class="bt-empty">User not found</div>';
             return;
         }
         const s = await res.json();
-
-        // Fetch badges
-        const badgeRes = await authFetch(`/api/v1/profile/${s.user_id}/badges`);
-        const badges = badgeRes.ok ? await badgeRes.json() : [];
+        const badges = s.badges || [];
 
         const earnedCount = badges.filter(b => b.earned).length;
         const totalCount = badges.length;
         const progressPct = s.xp_needed > 0 ? Math.min(100, Math.round((s.xp_progress / s.xp_needed) * 100)) : 100;
         const isMaxLevel = s.level >= 100;
+        const memberSince = s.created_at ? new Date(s.created_at).toLocaleDateString() : '--';
 
         // Group badges by category
         const categories = {};
@@ -53,11 +60,9 @@ export async function loadMyStats() {
             const badgesHtml = catBadges.map(b => {
                 const tierClass = `tier-${b.tier || 1}`;
                 const earnedClass = b.earned ? 'earned' : 'locked';
-                const earnedDate = b.earned_at ? new Date(b.earned_at).toLocaleDateString() : '';
-                return `<div class="rpg-badge ${earnedClass} ${tierClass}" title="${escapeHtml(b.description)}${earnedDate ? ' - Earned ' + earnedDate : ''}">
+                return `<div class="rpg-badge ${earnedClass} ${tierClass}" title="${escapeHtml(b.description)}">
                     <span class="rpg-badge-icon">${b.icon_emoji || '\ud83c\udfc5'}</span>
                     <span class="rpg-badge-name">${escapeHtml(b.name)}</span>
-                    <span class="rpg-badge-desc">${escapeHtml(b.description)}</span>
                 </div>`;
             }).join('');
             return `<div class="rpg-badge-category">
@@ -65,6 +70,10 @@ export async function loadMyStats() {
                 <div class="rpg-badge-grid">${badgesHtml}</div>
             </div>`;
         }).join('');
+
+        const avatarHtml = s.avatar_url
+            ? `<img src="${s.avatar_url}" class="rpg-profile-avatar" alt="${escapeHtml(s.username)}">`
+            : `<div class="rpg-profile-avatar rpg-profile-avatar-placeholder">${escapeHtml((s.username || '?')[0].toUpperCase())}</div>`;
 
         root.innerHTML = `
             <div class="rpg-profile-hero">
@@ -77,12 +86,13 @@ export async function loadMyStats() {
                                 stroke-linecap="round" transform="rotate(-90 60 60)"
                                 class="rpg-level-progress"/>
                         </svg>
-                        <div class="rpg-level-number">${s.level}</div>
+                        ${avatarHtml}
+                        <div class="rpg-level-badge">${s.level}</div>
                     </div>
                     <div class="rpg-profile-info">
                         <div class="rpg-profile-name">${escapeHtml(s.username || '--')}</div>
                         <div class="rpg-profile-rank">${escapeHtml(s.rank || 'Script Kiddie')}</div>
-                        <div class="rpg-profile-global-rank">Global #${(s.global_rank || 0).toLocaleString()}</div>
+                        <div class="rpg-profile-global-rank">Global #${(s.global_rank || 0).toLocaleString()} \u2022 Member since ${memberSince}</div>
                     </div>
                 </div>
                 <div class="rpg-xp-section">
@@ -131,7 +141,7 @@ export async function loadMyStats() {
             </div>
         `;
     } catch (e) {
-        console.error('Failed to load my stats:', e);
-        root.innerHTML = '<div class="card"><div class="card-title">My Stats</div><div class="bt-empty">Failed to load stats</div></div>';
+        console.error('Failed to load profile:', e);
+        root.innerHTML = '<div class="bt-empty">Failed to load profile</div>';
     }
 }

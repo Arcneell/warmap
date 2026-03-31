@@ -74,9 +74,9 @@ async def upload_files(
         db.add(transaction)
         await db.flush()
 
-        # Store file content in Redis (TTL 1 hour)
+        # Store file content in Redis (TTL 4 hours for large files)
         file_key = f"upload:{transaction.id}:file"
-        await redis_bin.setex(file_key, 3600, content)
+        await redis_bin.setex(file_key, 14400, content)
 
         # Publish status update
         redis_text = await get_redis()

@@ -139,5 +139,6 @@ async def get_leaderboard(
             "cell_discovered": row.cell_discovered,
             "xp": row.xp,
             "level": level,
+            "rank_title": rank_title(level),
         })
     return entries

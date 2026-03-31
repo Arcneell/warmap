@@ -14,6 +14,9 @@ class BadgeDefinition(Base):
     name: Mapped[str] = mapped_column(String(128), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)
     icon_svg: Mapped[str | None] = mapped_column(Text)
+    icon_emoji: Mapped[str | None] = mapped_column(String(8))
+    category: Mapped[str | None] = mapped_column(String(32))
+    tier: Mapped[int | None] = mapped_column(Integer, default=1)
     criteria_type: Mapped[str | None] = mapped_column(String(32))
     criteria_value: Mapped[int | None] = mapped_column(Integer)
 

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     rate_limit_anon: int = 20
 
     # Worker
-    worker_max_jobs: int = 5
+    worker_max_jobs: int = 10
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 

@@ -1,125 +1,159 @@
-# Spécifications techniques — Frontend
+# Frontend Specifications
 
-## Philosophie
+## Architecture
 
-SPA en un seul fichier `index.html` (avec CSS/JS inline ou fichiers séparés). Pas de framework JS, pas de build step. Le but c'est que ça reste simple à maintenir et à modifier.
+Vanilla JavaScript SPA with ES6 modules, built with Vite. No framework.
 
-## Librairies externes (CDN)
+| File | Purpose |
+|------|---------|
+| `main.js` | Entry point, route registration, module init |
+| `router.js` | Hash-based SPA router (#map, #bluetooth, etc.) |
+| `state.js` | Reactive state store (auth, filters, view mode) |
+| `api.js` | `authFetch` wrapper with auto token refresh |
+| `auth.js` | GitHub OAuth flow, JWT management |
+| `utils.js` | DOM helpers, HTML escape |
 
-- **Leaflet** 1.9+ : carte interactive — `https://unpkg.com/leaflet/dist/leaflet.js`
-- **Leaflet.markercluster** : clustering des markers — `https://unpkg.com/leaflet.markercluster/dist/leaflet.markercluster.js`
-- **Chart.js** 4+ : graphiques stats — `https://cdn.jsdelivr.net/npm/chart.js`
+### Pages (8 routes)
 
-## Layout
+| Route | Page | Description |
+|-------|------|-------------|
+| `#map` | Map + Sidebar | Interactive Leaflet map with WiFi/BT/Cell layers |
+| `#bluetooth` | Bluetooth | Paginated BT/BLE device table |
+| `#cell` | Cell Towers | Paginated cell tower table with radio filter |
+| `#leaderboard` | Leaderboard | RPG-styled player rankings |
+| `#advanced-stats` | Stats | Channels, encryption, manufacturers, countries, SSIDs |
+| `#my-stats` | My Stats | RPG profile with XP ring, badges, discoveries |
+| `#uploads` | Uploads | Upload history with real-time status |
+| `#profile` | Profile | Public player profile (from leaderboard click) |
 
-Layout en une seule page, deux zones principales :
+### Components
 
-```
-┌──────────────────────────────────────────────────┐
-│  HEADER — logo "Wardrove" + bouton upload        │
-├────────────┬─────────────────────────────────────┤
-│            │                                     │
-│  SIDEBAR   │           CARTE LEAFLET             │
-│  (stats +  │         (pleine hauteur)            │
-│  filtres)  │                                     │
-│            │                                     │
-│  - Total   │                                     │
-│  - Chart   │                                     │
-│  - Filtres │                                     │
-│  - Dernière│                                     │
-│    session │                                     │
-│            │                                     │
-├────────────┴─────────────────────────────────────┤
-│  (modal upload en overlay quand on clique)        │
-└──────────────────────────────────────────────────┘
-```
+| Component | Description |
+|-----------|-------------|
+| `upload.js` | Upload modal with drag & drop, progress, status polling |
 
-- Sidebar : largeur fixe ~320px, scrollable
-- Carte : occupe tout l'espace restant
-- Responsive : sur mobile, sidebar passe en dessous ou en drawer
+## Dependencies (CDN)
 
-## Design / Ambiance
+- **Leaflet** 1.9.4 + MarkerCluster + Heat
+- **Chart.js** 4
 
-Thème sombre, ambiance "terminal hacker" mais propre et lisible. Pas du vert matrix cringe, plutôt :
+## Design System
 
-- Background : gris très foncé (`#0d1117` style GitHub dark)
-- Texte principal : gris clair (`#e6edf3`)
-- Accent primaire : vert-cyan froid (`#00d4aa`)
-- Accent secondaire : orange chaud pour les warnings/WEP (`#f0883e`)
-- Font monospace pour les données techniques (BSSID, canal) : `JetBrains Mono` ou `Fira Code` (Google Fonts)
-- Font sans-serif pour les titres : `Space Grotesk` ou `DM Sans`
-- Bordures et séparateurs : subtils, `rgba(255,255,255,0.1)`
-- Cards dans la sidebar avec léger `backdrop-filter: blur` si possible
+### Fonts
+- UI: `Space Grotesk` (Google Fonts)
+- Data/mono: `JetBrains Mono` (Google Fonts)
 
-## Carte
+### Colors (CSS Variables)
 
-### Initialisation
-- Centrer sur les données si disponibles, sinon centre monde
-- Zoom adapté aux bounds des AP affichés
-- Tuiles : `https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png` (CartoDB Dark Matter, cohérent avec le thème sombre)
+```css
+--bg-primary: #f5f6f8;
+--bg-card: #ffffff;
+--accent: #0d9373;          /* Primary teal-green */
+--accent-orange: #e07832;
+--accent-red: #dc3545;
+--accent-blue: #3b82f6;
 
-### Markers
-- Utiliser `L.circleMarker` (plus léger et plus joli que des icônes) avec rayon 6-8px
-- Couleurs par encryption :
-  - WPA3 : `#00d4aa` (vert-cyan)
-  - WPA2 : `#58a6ff` (bleu)
-  - WPA : `#f0883e` (orange)
-  - WEP : `#f85149` (rouge)
-  - Open : `#8b949e` (gris)
-  - Unknown : `#484f58` (gris foncé)
-- MarkerCluster avec style custom qui reprend le thème sombre
-
-### Popup
-Au clic sur un marker, popup avec :
-```
-SSID: FreeWifi_secure
-BSSID: AA:BB:CC:DD:EE:FF
-Encryption: WPA2
-Channel: 6
-Signal: -45 dBm
-First seen: 2024-01-15 14:30
-Last seen: 2024-06-12 09:15
+/* Encryption colors */
+--enc-wpa3: #0d9373;  /* green */
+--enc-wpa2: #3b82f6;  /* blue */
+--enc-wpa: #e07832;   /* orange */
+--enc-wep: #dc3545;   /* red */
+--enc-open: #9ca3af;  /* gray */
 ```
 
-### Filtres
-- Checkboxes dans la sidebar pour filtrer par type de chiffrement (tous cochés par défaut)
-- Champ de recherche texte pour filtrer par SSID
-- Les filtres rechargent le GeoJSON via l'API avec les query params appropriés
+### RPG Visual System
 
-## Sidebar — Stats
+#### Profile Hero
+- Dark gradient background (#0a1628 -> #1a1a2e) with radial glow accents
+- SVG level ring with animated progress arc
+- Animated XP bar with shimmer effect
+- Rank title with text-shadow glow
 
-### Compteur principal
-Gros chiffre en accent : nombre total d'AP
+#### Badge Tiers (visual rarity)
+| Tier | Color | Effect |
+|------|-------|--------|
+| 1 | Gray border | None |
+| 2 | Green border | None |
+| 3 | Blue border | Subtle shadow |
+| 4 | Purple border | Background tint + shadow |
+| 5 | Gold border | Pulsing gold glow animation |
+| 6-8 | Red/purple gradient | Pulsing legendary glow animation |
 
-### Chart encryption
-Donut chart (Chart.js) avec les couleurs des markers. Légende intégrée.
+Locked badges: 35% opacity, grayscale filter, reduced on hover.
 
-### Top SSID
-Liste des 10 SSID les plus fréquents avec leur count, style compact.
+#### Leaderboard
+- Top 3: gold/silver/bronze left border + gradient background + avatar glow
+- Medal icons for ranks 1-3
+- Rank title shown under username
+- Clickable rows -> navigate to player profile
 
-### Infos session
-- Nombre total de sessions
-- Date de la dernière session
-- Petit historique : AP importés par session (sparkline ou mini bar chart)
+### Animations
 
-## Modal Upload
+```css
+/* XP bar shimmer */
+@keyframes xp-shimmer { 0%,100% { opacity:0 } 50% { opacity:1 } }
 
-- S'ouvre au clic sur le bouton "Upload" dans le header
-- Zone de drag & drop + bouton "Browse"
-- Accepte `.csv` et `.wigle.csv`
-- Barre de progression pendant l'upload
-- Après upload, affiche le résultat : `142 imported, 38 updated, 5 skipped`
-- Bouton pour fermer et la carte se rafraîchit automatiquement
+/* Gold badge glow */
+@keyframes badge-glow-gold { 0%,100% { box-shadow: 0 0 6px gold/8% } 50% { box-shadow: 0 0 14px gold/20% } }
 
-## Interactions
+/* Legendary badge glow */
+@keyframes badge-glow-legendary { 0%,100% { box-shadow: 0 0 8px red/8% } 50% { box-shadow: 0 0 18px red/20%, 0 0 30px purple/10% } }
 
-- Au chargement de la page : `GET /api/stats` pour la sidebar + `GET /api/accesspoints/geojson` pour la carte
-- Quand un filtre change : re-fetch le GeoJSON avec les nouveaux params
-- Après un upload : re-fetch stats + GeoJSON
-- Tout en fetch asynchrone, pas de rechargement de page
+/* Upload status pulse */
+@keyframes pulse-dot { 0%,100% { opacity:0.35; scale:0.9 } 50% { opacity:1; scale:1.15 } }
+```
 
-## Comportement responsive
+## Map Features
 
-- En dessous de 768px : sidebar se collapse en un bouton hamburger, la carte prend toute la largeur
-- Le modal upload reste centré
-- Les popups Leaflet s'adaptent naturellement
+### Layers
+- **WiFi**: CircleMarkers with encryption color-coding, MarkerCluster at zoom <17
+- **Bluetooth**: Purple markers
+- **Cell towers**: Blue markers
+- **Heatmap**: Signal strength gradient (toggle)
+
+### Controls
+- View mode: Markers / Heatmap
+- Layer toggles: WiFi / BT / Cell
+- "Mine only" filter (authenticated)
+- Search: SSID or BSSID
+- Encryption <input type="checkbox">: Filter by type
+
+### Interactions
+- Viewport-based data loading (fetch GeoJSON by bounding box)
+- Live refresh every 5 seconds
+- Multi-AP popup navigation (arrows when overlapping)
+- Click marker -> popup with network details + Google Maps link
+
+## Sidebar (map page only)
+
+1. **Profile card**: username, rank, XP progress bar (animated fill)
+2. **Access Points**: total count
+3. **Encryption chart**: Chart.js doughnut
+4. **Top SSID**: ranked list
+5. **Sessions**: upload count + mini bar chart
+6. **Filters**: encryption checkboxes + SSID search
+
+## Upload Modal
+
+- Drag & drop zone + browse button
+- Accepted: `.csv`, `.wigle.csv`, `.netxml`, `.xml`, `.kml`, `.kmz`, `.ns1`, `.db`, `.plist`, `.txt`, `.wiscan`
+- Progress bar (30% -> 50% -> 100%)
+- Result display: imported / updated / skipped / XP earned
+- Auto-refresh map + stats after upload
+- Toast notifications (success/error)
+
+## Responsive
+
+- `<768px`: hamburger menu, sidebar as overlay, full-width map
+- `<390px`: reduced font sizes, tighter spacing
+- RPG grids: 4 columns -> 2 columns on mobile
+- Badge grid: auto-fill with min 110px
+
+## API Integration
+
+All requests to `/api/v1/`:
+- `authFetch()` adds JWT Bearer token, auto-refreshes 30s before expiry
+- Upload: multipart POST, polls status every 1s (180 max attempts)
+- Map: GeoJSON endpoints with bbox + filter params
+- Stats: cached (5min TTL server-side)
+- Profile: public endpoints for user lookup (by ID or username)
